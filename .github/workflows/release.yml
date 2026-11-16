@@ -1,0 +1,54 @@
+name: Release
+
+# Push a tag that matches the TOC version, e.g.  git tag v1.0.1 && git push origin v1.0.1
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check the tag matches the addon version
+        run: |
+          version=$(grep -oP '^## Version:\s*\K\S+' OrbsUI/OrbsUI.toc)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match TOC version $version"; exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Run tests
+        run: |
+          python -m pip install --target .test-deps lupa==2.8
+          python tests/run.py
+
+      - name: Package
+        run: python tools/package.py
+
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<'EOF' > release-notes.md
+          import re, os
+          v = os.environ["VERSION"]
+          text = open("OrbsUI/CHANGELOG.md").read()
+          m = re.search(rf"^## {re.escape(v)}\s*$(.*?)(?=^## |\Z)", text, re.M | re.S)
+          print(m.group(1).strip() if m else f"OrbsForever {v}")
+          EOF
+          gh release create "$GITHUB_REF_NAME" "dist/OrbsForever-$VERSION.zip" \
+            --title "OrbsForever $VERSION" --notes-file release-notes.md
+
+      - name: Upload to CurseForge
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+        run: python tools/upload_curseforge.py

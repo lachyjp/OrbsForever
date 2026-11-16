@@ -1,0 +1,39 @@
+OrbsForever - INSTALLATION
+
+Using the CurseForge app: search for OrbsForever and click Install. Done.
+
+INSTALLING BY HAND
+
+1. Close World of Warcraft.
+
+2. Extract the downloaded ZIP. Inside is a folder named OrbsUI.
+
+3. Open your game's AddOns folder, for example:
+   World of Warcraft\_retail_\Interface\AddOns\
+   World of Warcraft\_classic_era_\Interface\AddOns\
+   Create the Interface and AddOns folders if they are missing.
+
+4. Copy the OrbsUI folder into AddOns. The final path must be:
+   ...\Interface\AddOns\OrbsUI\OrbsUI.toc
+
+   Avoid an extra folder layer such as:
+   ...\Interface\AddOns\OrbsForever-1.0.0\OrbsUI\OrbsUI.toc
+
+5. Start the game. On character selection, open AddOns and make sure
+   OrbsForever is enabled.
+
+6. Type /orbs in game to open the designer.
+
+UPDATING
+
+Close the game and replace the OrbsUI folder with the new one. Your
+settings live in the WTF folder and are kept.
+
+TROUBLESHOOTING
+
+Not in the AddOns list: check the OrbsUI\OrbsUI.toc path above and restart
+the game.
+Marked out of date after a patch: check for an update, or tick
+"Load out of date AddOns".
+Lua error: type /console scriptErrors 1, reproduce it, and report the first
+error together with the output of /orbs debug.

@@ -2,7 +2,7 @@
 ## Title: OrbsForever
 ## Notes: Diablo-style health and power orbs with a live-preview designer and consumable slots. Type /orbs.
 ## Author: lachy
-## Version: 1.0.0
+## Version: 1.0.2
 ## OptionalDeps: DialogueUI
 ## SavedVariablesPerCharacter: OrbsUIDB
 Compat.lua

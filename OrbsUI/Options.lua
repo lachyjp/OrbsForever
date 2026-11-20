@@ -682,7 +682,8 @@ local function BuildFieldPages(p)
     end
 end
 
-StaticPopupDialogs = StaticPopupDialogs or {}
+-- Never assign the StaticPopupDialogs global itself: that taints it, and the
+-- Escape key's StaticPopup_EscapePressed then gets blocked from protected calls.
 StaticPopupDialogs["ORBSUI_RESET_ALL"] = {
     text = "Reset every OrbsForever setting to its default? Orb positions and pinned items are kept.",
     button1 = YES or "Yes", button2 = NO or "No",
@@ -826,7 +827,17 @@ function O.CreateOptions()
     p:SetScript("OnDragStop", p.StopMovingOrSizing)
     Backdrop(p, { 0.035, 0.033, 0.032, 0.98 }, { 0.42, 0.34, 0.22, 1 })
     p:Hide()
-    tinsert(UISpecialFrames, "OrbsUIOptions")
+    -- Escape closes the window with its own key handler instead of Blizzard's
+    -- UISpecialFrames list: the Escape / game menu code is protected, and an
+    -- add-on entry in that list taints it ("blocked from an action only
+    -- available to the Blizzard UI"). SetPropagateKeyboardInput is off-limits
+    -- in combat, so it's only changed outside combat; other keys pass through.
+    p:EnableKeyboard(true)
+    p:SetScript("OnKeyDown", function(self, key)
+        local escape = key == "ESCAPE"
+        if not InCombatLockdown() then self:SetPropagateKeyboardInput(not escape) end
+        if escape then self:Hide() end
+    end)
 
     local title = Label(p, "OrbsForever", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 20, -16)
@@ -912,8 +923,14 @@ function O.CreateOptions()
     p.status:SetWidth(W - CONTENT_X - 180)
     p.status:SetTextColor(0.65, 0.65, 0.65)
 
-    p:SetScript("OnShow", function() O.RefreshOptions() end)
-    p:SetScript("OnHide", function(self) self:SetAlpha(1) end)
+    p:SetScript("OnShow", function(self)
+        if not InCombatLockdown() then self:SetPropagateKeyboardInput(true) end
+        O.RefreshOptions()
+    end)
+    p:SetScript("OnHide", function(self)
+        self:SetAlpha(1)
+        if not InCombatLockdown() then self:SetPropagateKeyboardInput(true) end
+    end)
 
     -- Entry under Options > AddOns that opens the designer.
     local categoryPanel = CreateFrame("Frame")
@@ -954,8 +971,8 @@ function O.RefreshOptions()
 end
 
 function O.OpenOptions()
-    if SettingsPanel and SettingsPanel:IsShown() then HideUIPanel(SettingsPanel) end
-    if InterfaceOptionsFrame and InterfaceOptionsFrame:IsShown() then InterfaceOptionsFrame:Hide() end
-    if GameMenuFrame then GameMenuFrame:Hide() end
+    -- Blizzard's Options window and game menu are left alone: hiding them from
+    -- add-on code taints them. The designer draws above them.
+    designer:Raise()
     designer:Show()
 end

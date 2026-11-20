@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.2
+
+- Fixed another source of "OrbsForever has been blocked from an action only available to the Blizzard UI" when pressing Escape. The add-on no longer reassigns the game's popup dialog table.
+
+## 1.0.1
+
+- Fixed pressing Escape triggering "OrbsForever has been blocked from an action only available to the Blizzard UI". The designer now closes on Escape with its own key handler instead of joining the game's Escape list.
+- Opening the designer no longer hides the game menu or the Options window from add-on code (which could cause the same error). The designer opens on top of them.
+
 ## 1.0.0
 
 First public release.

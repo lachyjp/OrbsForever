@@ -29,7 +29,8 @@ for _, method in ipairs({ "SetClampedToScreen", "RegisterForDrag", "SetFrameStra
     "SetBackdropBorderColor", "SetValueStep", "SetObeyStepOnDrag", "SetJustifyH", "SetTexCoord",
     "SetHighlightTexture", "RegisterForClicks", "SetOwner", "AddLine", "SetHyperlink", "SetWordWrap", "SetEnabled",
     "SetNormalTexture", "SetHitRectInsets", "LockHighlight", "UnlockHighlight", "SetAutoFocus", "ClearFocus",
-    "SetColorTexture", "SetNormalFontObject", "SetFontObject", "SetClipsChildren" }) do methods[method] = noop end
+    "SetColorTexture", "SetNormalFontObject", "SetFontObject", "SetClipsChildren",
+    "EnableKeyboard", "SetPropagateKeyboardInput", "Raise" }) do methods[method] = noop end
 function methods:SetHeight(h) self.height = h end
 function methods:SetScrollChild(c) self.scrollChild = c end
 function methods:GetStringWidth() return #(self.text or "") * 6 end
@@ -126,7 +127,7 @@ ColorPickerFrame = widget("Frame", "ColorPickerFrame")
 function ColorPickerFrame:GetColorRGB() return 0.8, 0.1, 0.2 end
 function ColorPickerFrame:SetupColorPickerAndShow(info) self.info = info end
 STANDARD_TEXT_FONT = "font.ttf"
-UISpecialFrames, SlashCmdList = {}, {}
+UISpecialFrames, SlashCmdList, StaticPopupDialogs = {}, {}, {}
 tinsert = table.insert
 function print(msg) messages[#messages + 1] = msg end
 C_Timer = { After = function(_, fn) timers[#timers + 1] = fn end }

@@ -32,7 +32,7 @@ def interface_to_version(n):
 def changelog_for(version):
     text = (ROOT / "OrbsUI" / "CHANGELOG.md").read_text()
     m = re.search(rf"^## {re.escape(version)}\s*$(.*?)(?=^## |\Z)", text, re.M | re.S)
-    return m.group(1).strip() if m else f"OrbsForever {version}"
+    return m.group(1).strip() if m else f"Orbs {version}"
 
 
 def request(url, token, data=None, headers=None):
@@ -57,7 +57,7 @@ def main():
     project = toc_field("X-Curse-Project-ID")
     interfaces = [int(x) for x in re.findall(r"\d+", toc_field("Interface") or "")]
     wanted = [interface_to_version(n) for n in interfaces]
-    zip_path = ROOT / "dist" / f"OrbsForever-{version}.zip"
+    zip_path = ROOT / "dist" / f"Orbs-{version}.zip"
     release_type = "beta" if re.search(r"beta|alpha", version, re.I) else "release"
     print(f"Version {version} ({release_type}), project {project}, game versions wanted: {', '.join(wanted)}")
     if not zip_path.exists():

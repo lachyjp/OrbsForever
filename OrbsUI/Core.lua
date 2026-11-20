@@ -1,5 +1,5 @@
 local name, O = ...
-O.version = "1.0.2"
+O.version = "1.0.3"
 O.defaults = {
     locked = true, size = 160, scale = 1, style = "Sphere", bezel = "Ornate",
     gloss = true, text = "percent", fontSize = 18, manaOnly = false, blue = false,
@@ -14,7 +14,7 @@ O.defaults = {
     positions = { health = { -260, 170 }, power = { 260, 170 } }, pins = {},
     editMode = true, layoutPositions = {},
 }
-function O.Message(message) print("|cffe5c58cOrbsForever:|r " .. message) end
+function O.Message(message) print("|cffe5c58cOrbs:|r " .. message) end
 local function defaults(target, source)
     for k, v in pairs(source) do
         if type(v) == "table" then

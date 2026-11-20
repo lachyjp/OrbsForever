@@ -1,4 +1,4 @@
-# OrbsForever
+# Orbs
 
 Diablo-style health and mana / power orbs for World of Warcraft, with original art, a live-preview designer and clickable consumable slots. No libraries or other addons required.
 
@@ -9,13 +9,13 @@ Diablo-style health and mana / power orbs for World of Warcraft, with original a
 - **Your colours.** Pick any health colour. Power follows your resource type automatically, or always use blue, or pick your own.
 - **Numbers your way.** Percentage, current value, current / maximum, percentage plus value on two lines, or hidden. Choose the line order, font, outline, both font sizes, line gap and separator spacing.
 - **Combat feedback.** A flash when you take damage, an amber trail as health drains away, and a low-health pulse with an adjustable threshold.
-- **Consumable slots.** A health potion and mana potion slot beside each orb, plus optional food and water slots. Auto fills them with the best match in your bags. Drag an item onto a slot to pin it, and bind keys under Key Bindings > OrbsForever. Place them beside, above or below each orb, or anywhere around its rim.
+- **Consumable slots.** A health potion and mana potion slot beside each orb, plus optional food and water slots. Auto fills them with the best match in your bags. Drag an item onto a slot to pin it, and bind keys under Key Bindings > Orbs. Place them beside, above or below each orb, or anywhere around its rim.
 - **Druid friendly.** Optionally keep the power orb on mana in Cat and Bear Form.
 - **Combat safe.** Uses secure buttons and native status bars, handles restricted combat values, and saves changes made in combat to apply afterwards.
 
 ## The designer
 
-Type `/orbs`, or open Game Menu > Options > AddOns > OrbsForever.
+Type `/orbs`, or open Game Menu > Options > AddOns > Orbs.
 
 The sidebar has **Orb**, **Colours**, **Text**, **Effects**, **Consumable slots** and **Moving** sections, and a **Changes** page that lists everything you've changed from the defaults. The preview at the top updates as you go. Hold **Hold to peek** to see your real orbs through the window.
 

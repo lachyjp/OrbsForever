@@ -8,7 +8,7 @@ addon = ROOT / "OrbsUI"
 toc_version = re.search(r"^## Version:\s*(\S+)", (addon / "OrbsUI.toc").read_text(), re.M).group(1)
 core_version = re.search(r'O\.version = "([^"]+)"', (addon / "Core.lua").read_text()).group(1)
 assert toc_version == core_version, f"TOC version {toc_version} != Core.lua version {core_version}"
-dest = ROOT / "dist" / f"OrbsForever-{toc_version}.zip"
+dest = ROOT / "dist" / f"Orbs-{toc_version}.zip"
 dest.parent.mkdir(exist_ok=True)
 with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as archive:
     for path in sorted(addon.rglob("*")):

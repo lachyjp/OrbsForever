@@ -1,8 +1,8 @@
-# OrbsForever development workspace
+# Orbs development workspace
 
 The installable addon is in `OrbsUI/`. See its [README](OrbsUI/README.md) and [CHANGELOG](OrbsUI/CHANGELOG.md).
 
-- `dist/OrbsForever-<version>.zip`: generated package to upload to CurseForge.
+- `dist/Orbs-<version>.zip`: generated package to upload to CurseForge.
 - `preview.png`: texture proof sheet using the shipped TGA assets, not a game screenshot.
 - `tools/gen_textures.py`: dependency-free original art generator.
 - `tools/preview.py`: optional Pillow proof-sheet renderer.
@@ -20,4 +20,4 @@ To release: bump `O.version` in `OrbsUI/Core.lua` and `## Version` in `OrbsUI/Or
 
 On this machine, `_forever_\Interface\AddOns\OrbsUI` is a directory junction to `OrbsUI/`, so `/reload` in game picks up edits directly.
 
-The buff, debuff, tooltip and loot-frame tweaks that used to be part of OrbsForever now live in the separate `wow-hud-tweaks` project (HUD Tweaks, `/hud`).
+The buff, debuff, tooltip and loot-frame tweaks that used to be part of Orbs now live in the separate `wow-hud-tweaks` project (HUD Tweaks, `/hud`).

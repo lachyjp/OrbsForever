@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+- Renamed from OrbsForever to Orbs, since it runs on Classic and Retail as well as WoW Forever. Your settings are kept.
+
 ## 1.0.2
 
 - Fixed another source of "OrbsForever has been blocked from an action only available to the Blizzard UI" when pressing Escape. The add-on no longer reassigns the game's popup dialog table.

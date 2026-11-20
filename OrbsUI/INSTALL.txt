@@ -1,6 +1,6 @@
-OrbsForever - INSTALLATION
+Orbs - INSTALLATION
 
-Using the CurseForge app: search for OrbsForever and click Install. Done.
+Using the CurseForge app: search for Orbs and click Install. Done.
 
 INSTALLING BY HAND
 
@@ -17,10 +17,10 @@ INSTALLING BY HAND
    ...\Interface\AddOns\OrbsUI\OrbsUI.toc
 
    Avoid an extra folder layer such as:
-   ...\Interface\AddOns\OrbsForever-1.0.0\OrbsUI\OrbsUI.toc
+   ...\Interface\AddOns\Orbs-1.0.0\OrbsUI\OrbsUI.toc
 
 5. Start the game. On character selection, open AddOns and make sure
-   OrbsForever is enabled.
+   Orbs is enabled.
 
 6. Type /orbs in game to open the designer.
 

@@ -3,7 +3,7 @@ local function check(ok, message) assert(ok, message); checks = checks + 1 end
 fire("ADDON_LOADED", "OrbsUI"); flush()
 check(O.orbs.health.bar.value == 760, "health initial value")
 check(O.orbs.power.bar.value == 580, "power initial value")
-check(registered.name == "OrbsForever", "settings registration")
+check(registered.name == "Orbs", "settings registration")
 check(O.buttons.health1.itemID == 99999, "strongest usable item, including matching use spell")
 check(O.buttons.power1.itemID == 2455, "mana category")
 check(O.buttons.health2.itemID == 117 and O.buttons.power2.itemID == 159, "food and water")

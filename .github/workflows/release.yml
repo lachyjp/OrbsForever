@@ -50,10 +50,10 @@ jobs:
           v = os.environ["VERSION"]
           text = open("OrbsUI/CHANGELOG.md").read()
           m = re.search(rf"^## {re.escape(v)}\s*$(.*?)(?=^## |\Z)", text, re.M | re.S)
-          print(m.group(1).strip() if m else f"OrbsForever {v}")
+          print(m.group(1).strip() if m else f"Orbs {v}")
           EOF
-          gh release create "$TAG" "dist/OrbsForever-$VERSION.zip" \
-            --title "OrbsForever $VERSION" --notes-file release-notes.md
+          gh release create "$TAG" "dist/Orbs-$VERSION.zip" \
+            --title "Orbs $VERSION" --notes-file release-notes.md
 
       - name: Upload to CurseForge
         env:

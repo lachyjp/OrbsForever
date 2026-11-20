@@ -234,7 +234,7 @@ function O.CreateSlots()
         b:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             if self.itemID then GameTooltip:SetHyperlink("item:" .. self.itemID)
-            else GameTooltip:SetText("OrbsForever: " .. categories[key]) end
+            else GameTooltip:SetText("Orbs: " .. categories[key]) end
             GameTooltip:AddLine(O.db.pins[key] and "Pinned item" or "Automatic selection", 0.9, 0.76, 0.5)
             GameTooltip:AddLine("Drag an item here to pin it. Shift-right-click to return to Auto.", 0.8, 0.8, 0.8, true)
             if InCombatLockdown() then GameTooltip:AddLine("Assignments update after combat.", 1, 0.5, 0.2) end

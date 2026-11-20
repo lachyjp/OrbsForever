@@ -1,8 +1,8 @@
 ## Interface: 16001, 11508, 11509, 50500, 110207, 120001, 120100, 120105
-## Title: OrbsForever
+## Title: Orbs
 ## Notes: Diablo-style health and power orbs with a live-preview designer and consumable slots. Type /orbs.
 ## Author: lachy
-## Version: 1.0.2
+## Version: 1.0.3
 ## X-Curse-Project-ID: 1811198
 ## OptionalDeps: DialogueUI
 ## SavedVariablesPerCharacter: OrbsUIDB

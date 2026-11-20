@@ -1,10 +1,10 @@
--- OrbsForever designer: a movable window styled after the PartyPlates designer,
+-- Orbs designer: a movable window styled after the PartyPlates designer,
 -- with a sidebar of sections, search, a live orb preview, per-setting and
 -- per-section reset, and a list of everything changed from the defaults.
 -- Controls are built from FIELDS below.
 
 local _, O = ...
-BINDING_HEADER_ORBSUI = "OrbsForever"
+BINDING_HEADER_ORBSUI = "Orbs"
 _G["BINDING_NAME_CLICK OrbsUI_Slot_health1:LeftButton"] = "Use health potion slot"
 _G["BINDING_NAME_CLICK OrbsUI_Slot_power1:LeftButton"] = "Use mana potion slot"
 _G["BINDING_NAME_CLICK OrbsUI_Slot_health2:LeftButton"] = "Use food slot"
@@ -685,7 +685,7 @@ end
 -- Never assign the StaticPopupDialogs global itself: that taints it, and the
 -- Escape key's StaticPopup_EscapePressed then gets blocked from protected calls.
 StaticPopupDialogs["ORBSUI_RESET_ALL"] = {
-    text = "Reset every OrbsForever setting to its default? Orb positions and pinned items are kept.",
+    text = "Reset every Orbs setting to its default? Orb positions and pinned items are kept.",
     button1 = YES or "Yes", button2 = NO or "No",
     OnAccept = function()
         local values = {}
@@ -839,7 +839,7 @@ function O.CreateOptions()
         if escape then self:Hide() end
     end)
 
-    local title = Label(p, "OrbsForever", "GameFontNormalLarge")
+    local title = Label(p, "Orbs", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 20, -16)
     title:SetTextColor(unpack(GOLD))
     local sub = Label(p, "HEALTH & POWER ORB DESIGNER", "GameFontHighlightSmall")
@@ -934,20 +934,20 @@ function O.CreateOptions()
 
     -- Entry under Options > AddOns that opens the designer.
     local categoryPanel = CreateFrame("Frame")
-    categoryPanel.name = "OrbsForever"
+    categoryPanel.name = "Orbs"
     local t = categoryPanel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     t:SetPoint("TOPLEFT", 20, -20)
-    t:SetText("OrbsForever")
+    t:SetText("Orbs")
     local d = categoryPanel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
     d:SetPoint("TOPLEFT", t, "BOTTOMLEFT", 0, -10)
     d:SetText("Style your health and power orbs with a live preview.")
     local open = CreateFrame("Button", nil, categoryPanel, "UIPanelButtonTemplate")
     open:SetPoint("TOPLEFT", d, "BOTTOMLEFT", 0, -16)
     open:SetSize(220, 30)
-    open:SetText("Open the OrbsForever designer")
+    open:SetText("Open the Orbs designer")
     open:SetScript("OnClick", function() O.OpenOptions() end)
     if Settings and Settings.RegisterCanvasLayoutCategory then
-        local category = Settings.RegisterCanvasLayoutCategory(categoryPanel, "OrbsForever")
+        local category = Settings.RegisterCanvasLayoutCategory(categoryPanel, "Orbs")
         Settings.RegisterAddOnCategory(category)
     elseif InterfaceOptions_AddCategory then
         InterfaceOptions_AddCategory(categoryPanel)
@@ -966,7 +966,7 @@ function O.RefreshOptions()
     RefreshNav()
     RefreshPreview()
     designer.status:SetText(InCombatLockdown() and "In combat: changes are saved and apply after combat." or
-        "Changes save automatically. Drag bag items onto slots to pin. Key bindings: Game Menu > Key Bindings > OrbsForever.")
+        "Changes save automatically. Drag bag items onto slots to pin. Key bindings: Game Menu > Key Bindings > Orbs.")
     refreshing = false
 end
 

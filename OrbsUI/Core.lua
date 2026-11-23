@@ -1,5 +1,5 @@
 local name, O = ...
-O.version = "1.0.3"
+O.version = "1.1.0"
 O.defaults = {
     locked = true, size = 160, scale = 1, style = "Sphere", bezel = "Ornate",
     gloss = true, text = "percent", fontSize = 18, manaOnly = false, blue = false,
@@ -7,7 +7,7 @@ O.defaults = {
     pulse = true, threshold = 30, incomingHeals = true,
     valueBelowPercent = false, damageFlash = true, animateDamage = true,
     font = "dialogue", fontOutline = "shadow",
-    slots = true, secondSlot = false, slotPosition = "Side", hidePlayer = false,
+    slots = true, healthSlots = 1, powerSlots = 1, slotPosition = "Side", hidePlayer = false,
     healthLabel = true, powerLabel = true, slotDistance = 12, slotGap = 10,
     animateGlobe = true, healthSlotAngle = 0, powerSlotAngle = 180,
     valueFontSize = 13, textOrder = "percentFirst", valueFormat = "both", lineGap = 3, separatorPadding = 1,
@@ -62,13 +62,22 @@ function O.Update(healthChanged)
 end
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
-frame:SetScript("OnEvent", function(_, event, unit, action, _, amount)
+frame:SetScript("OnEvent", function(_, event, unit, action, extra, amount)
     if event == "ADDON_LOADED" then
         if unit ~= name then return end
         OrbsUIDB = type(OrbsUIDB) == "table" and OrbsUIDB or {}
+        -- Saved settings without a recorded version come from before 1.1.0.
+        O.previousVersion = OrbsUIDB.lastVersion or (next(OrbsUIDB) and "1.0" or nil)
         if OrbsUIDB.valueFontSize == nil and type(OrbsUIDB.fontSize) == "number" then
             OrbsUIDB.valueFontSize = (OrbsUIDB.text == "current" or OrbsUIDB.text == "both") and OrbsUIDB.fontSize
                 or math.max(10, math.floor(OrbsUIDB.fontSize * 0.72))
+        end
+        if OrbsUIDB.secondSlot ~= nil then
+            -- 1.0.x had an on/off second slot; carry it over to the slot counts.
+            local count = OrbsUIDB.secondSlot and 2 or 1
+            OrbsUIDB.healthSlots = OrbsUIDB.healthSlots or count
+            OrbsUIDB.powerSlots = OrbsUIDB.powerSlots or count
+            OrbsUIDB.secondSlot = nil
         end
         defaults(OrbsUIDB, O.defaults)
         O.db = OrbsUIDB
@@ -81,6 +90,8 @@ frame:SetScript("OnEvent", function(_, event, unit, action, _, amount)
         O.db.threshold = math.max(5, math.min(60, O.db.threshold))
         O.db.slotDistance = math.max(-80, math.min(160, O.db.slotDistance))
         O.db.slotGap = math.max(0, math.min(100, O.db.slotGap))
+        O.db.healthSlots = math.floor(math.max(1, math.min(O.MAX_SLOTS, O.db.healthSlots)))
+        O.db.powerSlots = math.floor(math.max(1, math.min(O.MAX_SLOTS, O.db.powerSlots)))
         O.db.healthSlotAngle = math.max(0, math.min(360, O.db.healthSlotAngle))
         O.db.powerSlotAngle = math.max(0, math.min(360, O.db.powerSlotAngle))
         frame:UnregisterEvent("ADDON_LOADED")
@@ -93,6 +104,8 @@ frame:SetScript("OnEvent", function(_, event, unit, action, _, amount)
     end
     if event == "PLAYER_REGEN_ENABLED" and O.initPending then O.Init(); return end
     if not O.orbs then return end
+    if event == "CHAT_MSG_ADDON" then O.ReceiveVersion(unit, action, extra, amount); return end
+    if event == "GROUP_ROSTER_UPDATE" then O.BroadcastVersion(); return end
     if event == "UNIT_COMBAT" then
         if not O.C.Secret(unit) and unit == "player" and not O.C.Secret(action) and action == "WOUND" then
             if O.C.Secret(amount) or (type(amount) == "number" and amount > 0) then
@@ -131,6 +144,7 @@ function O.Init()
     end
     O.healEvent = O.C.Register(frame, "UNIT_HEAL_PREDICTION")
     O.InitHeals()
+    O.InitNotify(frame, O.previousVersion)
 end
 SLASH_ORBSUI1 = "/orbs"
 SlashCmdList.ORBSUI = function(message)

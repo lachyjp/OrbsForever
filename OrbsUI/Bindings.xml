@@ -3,5 +3,8 @@
     <Binding name="CLICK OrbsUI_Slot_power1:LeftButton" />
     <Binding name="CLICK OrbsUI_Slot_health2:LeftButton" />
     <Binding name="CLICK OrbsUI_Slot_power2:LeftButton" />
+    <Binding name="CLICK OrbsUI_Slot_health3:LeftButton" />
+    <Binding name="CLICK OrbsUI_Slot_power3:LeftButton" />
+    <Binding name="CLICK OrbsUI_Slot_health4:LeftButton" />
+    <Binding name="CLICK OrbsUI_Slot_power4:LeftButton" />
 </Bindings>
-

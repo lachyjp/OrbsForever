@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+- Each orb can now have up to four consumable slots, set with the new **Health orb slots** and **Mana orb slots** sliders. Keep a mana potion, conjured water and a mana gem in separate slots, for example.
+- Extra slots fill automatically with food, healthstones and bandages (health) or water, mana gems and runes (mana). Drag any item onto a slot to pin it.
+- Orbs now tells you in chat when a guild or group member has a newer version, and after an update says what's new and where to find it.
+
 ## 1.0.3
 
 - Renamed from OrbsForever to Orbs, since it runs on Classic and Retail as well as WoW Forever. Your settings are kept.

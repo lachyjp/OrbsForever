@@ -43,7 +43,7 @@ combat = false; health, maxhealth = 760, 1000
 O.Change("slotDistance", -30)
 O.Change("slotPosition", "Side")
 check(O.buttons.health2.point[4] == -30, "negative padding works in side placement")
-O.Change("secondSlot", false)
+O.Change("healthSlots", 1); O.Change("powerSlots", 1)
 O.Change("slotPosition", "Ring")
 local radius = O.db.size * .476 + 19 - 30
 for _, degrees in ipairs({ 0, 90, 180, 270, 360 }) do
@@ -56,7 +56,7 @@ O.Change("healthSlotAngle", 45)
 O.Change("powerSlotAngle", 225)
 check(near(O.buttons.health1.point[4], -O.buttons.power1.point[4]) and
     near(O.buttons.health1.point[5], -O.buttons.power1.point[5]), "orb angles are independently configurable")
-O.Change("secondSlot", true)
+O.Change("healthSlots", 2); O.Change("powerSlots", 2)
 O.Change("slotGap", 10)
 local a, b = O.buttons.health1.point, O.buttons.health2.point
 check(near(math.sqrt(a[4]^2 + a[5]^2), radius) and near(math.sqrt(b[4]^2 + b[5]^2), radius), "paired slots sit on same circular edge")
@@ -80,6 +80,15 @@ for _, f in ipairs(frames) do
         break
     end
 end
+O.Change("powerSlots", 3)
+O.Change("slotPosition", "Ring")
+local p1, p2, p3 = O.buttons.power1.point, O.buttons.power2.point, O.buttons.power3.point
+check(near(math.sqrt((p1[4]-p2[4])^2 + (p1[5]-p2[5])^2), 38 + O.db.slotGap) and
+    near(math.sqrt((p2[4]-p3[4])^2 + (p2[5]-p3[5])^2), 38 + O.db.slotGap), "three ring slots evenly spaced")
+local mid = O.db.powerSlotAngle * math.pi / 180
+check(near(math.atan2(p2[5], p2[4]) % (2 * math.pi), mid % (2 * math.pi)), "middle ring slot sits on the chosen angle")
+O.Change("slotPosition", "Side")
 O.Change("slotDistance", -24)
 O.Change("slotGap", 42)
+O.Change("slotPosition", "Ring")
 return checks

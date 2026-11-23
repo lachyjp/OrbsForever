@@ -33,6 +33,8 @@ for modern in (False, True):
     print(f"  {edit_checks} Edit Mode unlock and per-layout position checks passed")
     heal_checks = lua.execute((ROOT / "tests/heals.lua").read_text())
     print(f"  {heal_checks} incoming-heal band checks passed (readable and secret values)")
+    notify_checks = lua.execute((ROOT / "tests/notify.lua").read_text())
+    print(f"  {notify_checks} update-note and patch-available checks passed")
     # Simulate a reload in a fresh runtime, retaining only the character DB.
     def serialize(value):
         if hasattr(value, "items"):
@@ -46,9 +48,21 @@ for modern in (False, True):
     reload.execute("OrbsUIDB=" + saved)
     for filename in files:
         reload.execute("assert(loadstring(...))(\"OrbsUI\", O)", (ROOT / "OrbsUI" / filename).read_text())
-    reload.execute('fire("ADDON_LOADED", "OrbsUI"); flush(); assert(O.db.size == 200); assert(O.db.scale == 1.4); assert(O.db.secondSlot); assert(O.db.text == "combined"); assert(O.db.fontSize == 24); assert(O.db.valueFontSize == 20); assert(O.db.textOrder == "valueFirst"); assert(O.db.lineGap == 12); assert(O.db.separatorPadding == 3); assert(O.db.font == "dialogue"); assert(O.db.damageFlash); assert(O.db.animateDamage); assert(not O.db.healthLabel); assert(O.db.powerLabel); assert(O.db.slotDistance == -24); assert(O.db.slotGap == 42); assert(O.db.healthSlotAngle == 121); assert(O.db.powerSlotAngle == 225); assert(O.db.animateGlobe); assert(O.db.slotPosition == "Ring")')
+    reload.execute('fire("ADDON_LOADED", "OrbsUI"); flush(); assert(O.db.size == 200); assert(O.db.scale == 1.4); assert(O.db.healthSlots == 2); assert(O.db.powerSlots == 3); assert(O.db.secondSlot == nil); assert(O.db.text == "combined"); assert(O.db.fontSize == 24); assert(O.db.valueFontSize == 20); assert(O.db.textOrder == "valueFirst"); assert(O.db.lineGap == 12); assert(O.db.separatorPadding == 3); assert(O.db.font == "dialogue"); assert(O.db.damageFlash); assert(O.db.animateDamage); assert(not O.db.healthLabel); assert(O.db.powerLabel); assert(O.db.slotDistance == -24); assert(O.db.slotGap == 42); assert(O.db.healthSlotAngle == 121); assert(O.db.powerSlotAngle == 225); assert(O.db.animateGlobe); assert(O.db.slotPosition == "Ring")')
     reload.execute('assert(O.db.customPowerColor); assert(O.db.powerColor[2] == 0.3); assert(O.orbs.power.bar.color[3] == 0.4)')
     print("  Saved settings survived simulated reload")
+    for legacy, expected in (("true", 2), ("false", 1)):
+        old = LuaRuntime()
+        old.execute((ROOT / "tests/wow_mock.lua").read_text())
+        old.execute("OrbsUIDB={secondSlot=" + legacy + "}")
+        for filename in files:
+            old.execute("assert(loadstring(...))(\"OrbsUI\", O)", (ROOT / "OrbsUI" / filename).read_text())
+        old.execute('fire("ADDON_LOADED", "OrbsUI"); flush()')
+        old.execute(f'assert(O.db.healthSlots == {expected} and O.db.powerSlots == {expected} and O.db.secondSlot == nil)')
+        old.execute('flush()')
+        shown = any("Updated to" in str(m) for m in old.globals().messages.values())
+        assert shown, "1.0.x settings get the update note"
+    print("  1.0.x second-slot setting migrated to slot counts")
 
 for path in (ROOT / "OrbsUI/Media").glob("*.tga"):
     data = path.read_bytes()
@@ -61,5 +75,5 @@ deltas = [sum(abs(a-b) for a, b in zip(frames[i], frames[(i+1) % 64])) / len(fra
 assert max(deltas) < min(deltas) * 3, "Loop boundary should be as smooth as interior frames"
 print("79 TGA assets: headers, dimensions, alpha, payloads and animation loop validated")
 bindings = ET.parse(ROOT / "OrbsUI/Bindings.xml").getroot()
-assert len(bindings) == 4
-print("4 binding declarations: XML parsed")
+assert len(bindings) == 8
+print("8 binding declarations: XML parsed")

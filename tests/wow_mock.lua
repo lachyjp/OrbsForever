@@ -217,3 +217,18 @@ function UnitIsUnit() return targetIsPlayer end
 function UnitIsFriend() return targetFriendly end
 spellDescriptions = { [331] = "Heals a friendly target for 307 to 343.", [403] = "Causes 13 to 15 Nature damage to target." }
 function GetSpellDescription(id) return spellDescriptions[id] end
+addonMessages, addonPrefixes, inGuild, inGroup, now = {}, {}, false, false, 0
+function GetTime() return now end
+function IsInGuild() return inGuild end
+LE_PARTY_CATEGORY_INSTANCE = 2
+function IsInGroup(category) return inGroup and category ~= 2 end
+function IsInRaid() return false end
+local function registerPrefix(prefix) addonPrefixes[prefix] = true end
+local function sendAddon(prefix, message, channel)
+    addonMessages[#addonMessages + 1] = { prefix = prefix, message = message, channel = channel }
+end
+if modern then
+    C_ChatInfo = { RegisterAddonMessagePrefix = registerPrefix, SendAddonMessage = sendAddon }
+else
+    RegisterAddonMessagePrefix, SendAddonMessage = registerPrefix, sendAddon
+end

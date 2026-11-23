@@ -13,8 +13,35 @@ add("food", { 117, 414, 422, 1707, 2070, 2287, 3770, 3771, 4599, 8952,
     4656, 16169, 17404, 19304, 20857, 22895, 5349, 1113, 1114, 1487, 8075, 8076, 22813 })
 add("water", { 159, 1179, 1205, 1708, 1645, 8766, 18300, 28399, 27860,
     5350, 2288, 2136, 3772, 8077, 8078, 8079, 30703, 22018 })
-local categories = { health1 = "heal", health2 = "food", power1 = "mana", power2 = "water" }
+add("healthstone", { 5512, 5511, 5509, 5510, 9421, 19004, 19005, 19006, 19007, 19008,
+    19009, 19010, 19011, 19012, 19013, 22103, 22104, 22105 })
+add("bandage", { 1251, 2581, 3530, 3531, 6450, 6451, 8544, 8545, 14529, 14530, 21990, 21991 })
+add("gem", { 5514, 5513, 8007, 8008, 22044 })
+add("rune", { 12662, 20520 })
+-- Each orb's slots fill in this order as the slot count goes up.
+O.MAX_SLOTS = 4
+local order = {
+    health = { "heal", "food", "healthstone", "bandage" },
+    power = { "mana", "water", "gem", "rune" },
+}
+local categories, slotKeys = {}, {}
+for _, kind in ipairs({ "health", "power" }) do
+    for i, category in ipairs(order[kind]) do
+        local key = kind .. i
+        categories[key] = category
+        slotKeys[#slotKeys + 1] = key
+    end
+end
 O.slotCategories = categories
+O.slotKeys = slotKeys
+O.slotLabels = { heal = "health potion", mana = "mana potion", food = "food", water = "water",
+    healthstone = "healthstone", bandage = "bandage", gem = "mana gem", rune = "rune" }
+function O.SlotCount(kind)
+    return kind == "health" and O.db.healthSlots or O.db.powerSlots
+end
+local function slotInfo(key)
+    return key:match("^(%a+)(%d+)$")
+end
 O.catalog = catalog
 local spellCategories = {}
 local function learnSpells()
@@ -66,7 +93,7 @@ function O.PickItems()
                 elseif class == 0 or catalog[id] then
                     local matched, reason = O.ClassifyItem(id, class, subclass, bag, slot)
                     local labels = {}
-                    for _, category in ipairs({ "heal", "mana", "food", "water" }) do
+                    for _, category in ipairs({ "heal", "mana", "food", "water", "healthstone", "bandage", "gem", "rune" }) do
                         if matched[category] then labels[#labels + 1] = category end
                     end
                     local eligible = (required or 0) <= UnitLevel("player")
@@ -95,9 +122,12 @@ function O.DiagnoseItems()
     O.RefreshSlots()
     O.Message("Auto selection: " .. #O.itemDiagnostics .. " consumables or uncached items in bags.")
     for _, message in ipairs(O.itemDiagnostics) do O.Message(message) end
-    for _, key in ipairs({ "health1", "health2", "power1", "power2" }) do
-        local id = O.buttons[key].itemID
-        O.Message(key .. ": " .. (O.db.pins[key] and "Pinned " or "Auto ") .. (id and tostring(id) or "empty"))
+    for _, key in ipairs(slotKeys) do
+        local kind, index = slotInfo(key)
+        if tonumber(index) <= O.SlotCount(kind) then
+            local id = O.buttons[key].itemID
+            O.Message(key .. ": " .. (O.db.pins[key] and "Pinned " or "Auto ") .. (id and tostring(id) or "empty"))
+        end
     end
 end
 function O.Pin(key, id)
@@ -157,30 +187,32 @@ function O.RefreshSlotVisuals()
         b.hotkey:SetText(binding and GetBindingText(binding, "KEY_") or "")
     end
 end
-function O.EdgeSlotPoint(size, padding, gap, degrees, second, paired)
+-- Slots spread along the orb's edge, centred on the chosen angle, one slot
+-- width plus the gap apart.
+function O.EdgeSlotPoint(size, padding, gap, degrees, index, count)
     local radius = math.max(1, size * 0.476 + 19 + padding)
     local angle = degrees * math.pi / 180
-    if paired then
-        local spread = math.asin(math.min(1, (38 + gap) / (2 * radius)))
-        angle = angle + (second and -spread or spread)
+    if count and count > 1 then
+        local step = 2 * math.asin(math.min(1, (38 + gap) / (2 * radius)))
+        angle = angle - (index - (count + 1) / 2) * step
     end
     return math.cos(angle) * radius, math.sin(angle) * radius
 end
 function O.LayoutSlots()
     if InCombatLockdown() then O.pending = true; return end
     for key, b in pairs(O.buttons) do
-        local health = key:find("health", 1, true) == 1
-        local second = key:sub(-1) == "2"
-        local orb = O.orbs[health and "health" or "power"]
+        local kind, index = slotInfo(key)
+        index = tonumber(index)
+        local health = kind == "health"
+        local count = O.SlotCount(kind)
+        local orb = O.orbs[kind]
         b:ClearAllPoints()
         b:SetScale(O.db.scale)
-        local spacing = (38 + O.db.slotGap) / 2
-        local offset = second and spacing or -spacing
-        if not O.db.secondSlot then offset = 0 end
+        local offset = (math.min(index, count) - (count + 1) / 2) * (38 + O.db.slotGap)
         local distance = O.db.slotDistance
         if O.db.slotPosition == "Ring" then
             local angle = health and O.db.healthSlotAngle or O.db.powerSlotAngle
-            local x, y = O.EdgeSlotPoint(O.db.size, distance, O.db.slotGap, angle, second, O.db.secondSlot)
+            local x, y = O.EdgeSlotPoint(O.db.size, distance, O.db.slotGap, angle, index, count)
             b:SetPoint("CENTER", orb, "CENTER", x, y)
         elseif O.db.slotPosition == "Top" then b:SetPoint("BOTTOM", orb, "TOP", offset, distance + 14)
         elseif O.db.slotPosition == "Bottom" then
@@ -188,14 +220,14 @@ function O.LayoutSlots()
             b:SetPoint("TOP", orb, "BOTTOM", offset, -distance - (showLabel and 14 or 0))
         elseif health then b:SetPoint("LEFT", orb, "RIGHT", distance, -offset)
         else b:SetPoint("RIGHT", orb, "LEFT", -distance, -offset) end
-        local enabled = O.db.slots and (not second or O.db.secondSlot)
+        local enabled = O.db.slots and index <= count
         b:SetAttribute("type1", enabled and "item" or nil)
         b:SetShown(enabled)
     end
 end
 function O.CreateSlots()
     O.buttons = {}
-    for _, key in ipairs({ "health1", "health2", "power1", "power2" }) do
+    for _, key in ipairs(slotKeys) do
         local b = CreateFrame("Button", "OrbsUI_Slot_" .. key, UIParent, "SecureActionButtonTemplate")
         O.buttons[key] = b
         b:SetSize(38, 38)
@@ -234,7 +266,7 @@ function O.CreateSlots()
         b:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             if self.itemID then GameTooltip:SetHyperlink("item:" .. self.itemID)
-            else GameTooltip:SetText("Orbs: " .. categories[key]) end
+            else GameTooltip:SetText("Orbs: " .. O.slotLabels[categories[key]]) end
             GameTooltip:AddLine(O.db.pins[key] and "Pinned item" or "Automatic selection", 0.9, 0.76, 0.5)
             GameTooltip:AddLine("Drag an item here to pin it. Shift-right-click to return to Auto.", 0.8, 0.8, 0.8, true)
             if InCombatLockdown() then GameTooltip:AddLine("Assignments update after combat.", 1, 0.5, 0.2) end

@@ -5,10 +5,10 @@
 
 local _, O = ...
 BINDING_HEADER_ORBSUI = "Orbs"
-_G["BINDING_NAME_CLICK OrbsUI_Slot_health1:LeftButton"] = "Use health potion slot"
-_G["BINDING_NAME_CLICK OrbsUI_Slot_power1:LeftButton"] = "Use mana potion slot"
-_G["BINDING_NAME_CLICK OrbsUI_Slot_health2:LeftButton"] = "Use food slot"
-_G["BINDING_NAME_CLICK OrbsUI_Slot_power2:LeftButton"] = "Use water slot"
+for _, key in ipairs(O.slotKeys) do
+    _G["BINDING_NAME_CLICK OrbsUI_Slot_" .. key .. ":LeftButton"] =
+        "Use " .. O.slotLabels[O.slotCategories[key]] .. " slot"
+end
 
 local GOLD = { 0.88, 0.73, 0.47 }
 local W, H = 820, 660
@@ -105,7 +105,10 @@ local FIELDS = {
     -- Slots
     { key = "slots", section = "slots", type = "toggle", label = "Consumable slots",
       tip = "Clickable potion slots next to each orb, filled automatically from your bags." },
-    { key = "secondSlot", section = "slots", type = "toggle", label = "Add food and water slots", parent = "slots" },
+    { key = "healthSlots", section = "slots", type = "range", label = "Health orb slots", min = 1, max = 4, step = 1, parent = "slots",
+      tip = "Slots fill in this order: health potion, food, healthstone, bandage. Drag any item onto a slot to use it there instead." },
+    { key = "powerSlots", section = "slots", type = "range", label = "Mana orb slots", min = 1, max = 4, step = 1, parent = "slots",
+      tip = "Slots fill in this order: mana potion, water, mana gem, rune. Drag any item onto a slot to use it there instead." },
     { key = "slotPosition", section = "slots", type = "choice", label = "Placement", parent = "slots",
       choices = { { "Side", "Beside orb" }, { "Top", "Above orb" }, { "Bottom", "Below orb" }, { "Ring", "Around edge" } } },
     { key = "slotDistance", section = "slots", type = "range", label = "Distance from orb", min = -80, max = 160, step = 2, parent = "slots" },
@@ -628,28 +631,41 @@ EXTRAS.slots = function(child, y)
     sub:SetPoint("TOPLEFT", 12, y - 6)
     sub:SetTextColor(unpack(GOLD))
     y = y - 26
-    local pinLabels = {}
-    for i, key in ipairs({ "health1", "power1", "health2", "power2" }) do
+    local rows = {}
+    for _, key in ipairs(O.slotKeys) do
         local auto = Button(child, "Auto", 60, function() O.Pin(key, nil) end)
-        auto:SetPoint("TOPLEFT", 12, y - (i - 1) * 26)
         Tooltip(auto, "Choose automatically", "Clears the pinned item so this slot picks the best match from your bags.")
         local l = Label(child, "", "GameFontHighlight")
         l:SetPoint("LEFT", auto, "RIGHT", 10, 0)
         l:SetWidth(CONTENT_W - 110)
         l:SetWordWrap(false)
-        pinLabels[key] = l
+        rows[#rows + 1] = { key = key, auto = auto, label = l }
     end
-    Note(child, "Auto scans matching bag items. Drag an item onto a slot to pin it; shift-right-click a slot to clear it.", y - 4 * 26 - 4)
+    local note = Note(child, "Auto scans matching bag items. Drag an item onto a slot to pin it; shift-right-click a slot to clear it.", y - 4)
     dynamic.slots = function()
-        for key, l in pairs(pinLabels) do
-            local pinned = O.db.pins[key]
-            local id = O.buttons[key].itemID
-            local itemName = id and O.C.ItemInfo(id)
-            l:SetText("|cffe0ba78" .. O.slotCategories[key] .. "|r  " .. (pinned and "Pinned: " or "Auto: ") ..
-                (id and (itemName or ("Item " .. id)) or "|cff888888No match|r"))
+        -- Only the slots each orb currently has are listed, health first.
+        local shown = 0
+        for _, row in ipairs(rows) do
+            local kind, index = row.key:match("^(%a+)(%d+)$")
+            local active = tonumber(index) <= O.SlotCount(kind)
+            row.auto:SetShown(active)
+            row.label:SetShown(active)
+            if active then
+                row.auto:ClearAllPoints()
+                row.auto:SetPoint("TOPLEFT", 12, y - shown * 26)
+                shown = shown + 1
+                local pinned = O.db.pins[row.key]
+                local id = O.buttons[row.key].itemID
+                local itemName = id and O.C.ItemInfo(id)
+                row.label:SetText("|cffe0ba78" .. (kind == "health" and "Health " or "Mana ") .. index .. ": " ..
+                    O.slotLabels[O.slotCategories[row.key]] .. "|r  " .. (pinned and "Pinned: " or "Auto: ") ..
+                    (id and (itemName or ("Item " .. id)) or "|cff888888No match|r"))
+            end
         end
+        note:ClearAllPoints()
+        note:SetPoint("TOPLEFT", 12, y - shown * 26 - 4)
     end
-    return 26 + 4 * 26 + 40
+    return 26 + #rows * 26 + 40
 end
 
 EXTRAS.moving = function(child, y)

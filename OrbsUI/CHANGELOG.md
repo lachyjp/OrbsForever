@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0
+
+- Each orb can now have up to four consumable slots. Two new sliders, **Health orb slots** and **Mana orb slots**, replace the "Add food and water slots" toggle, so you can keep a mana potion, conjured water and a mana gem in three separate slots.
+- New slots fill automatically in this order. Health: potion, food, healthstone, bandage. Mana: potion, water, mana gem, rune. Drag any item onto a slot to use it there instead.
+- Healthstones, bandages, mana gems and Demonic and Dark Runes are now recognised.
+- Key bindings for the new slots are under Key Bindings > Orbs.
+- If you had food and water slots turned on, both orbs start with two slots.
+
 ## 1.0.3
 
 - Renamed from OrbsForever to Orbs, since it runs on Classic and Retail as well as WoW Forever. Your settings are kept.

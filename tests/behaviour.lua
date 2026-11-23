@@ -8,7 +8,7 @@ check(O.buttons.health1.itemID == 99999, "strongest usable item, including match
 check(O.buttons.power1.itemID == 2455, "mana category")
 check(O.buttons.health2.itemID == 117 and O.buttons.power2.itemID == 159, "food and water")
 check(not O.buttons.health2.shown, "second slots initially hidden")
-O.Change("secondSlot", true)
+O.Change("healthSlots", 2); O.Change("powerSlots", 2)
 check(O.buttons.health2.shown, "second slots enabled")
 O.Pin("health1", 118)
 check(O.buttons.health1.attributes.item1 == "item:118", "pin overrides automatic choice")

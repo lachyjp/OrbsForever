@@ -3,7 +3,7 @@ local function check(ok, message) assert(ok, message); checks = checks + 1 end
 combat = false
 O.db.pins = {}
 O.Change("slots", true)
-O.Change("secondSlot", true)
+O.Change("healthSlots", 2); O.Change("powerSlots", 2)
 O.Change("healthLabel", false)
 check(not O.orbs.health.label.shown and O.orbs.power.label.shown, "health label toggle is independent")
 O.Change("powerLabel", false)
@@ -22,9 +22,9 @@ O.Change("slotPosition", "Bottom")
 check(O.buttons.health2.point[5] == -74, "bottom padding clears visible labels")
 O.Change("healthLabel", false)
 check(O.buttons.health2.point[5] == -60 and O.buttons.power2.point[5] == -74, "hidden label removes only its own clearance")
-O.Change("secondSlot", false)
+O.Change("healthSlots", 1); O.Change("powerSlots", 1)
 check(O.buttons.health1.point[4] == 0 and not O.buttons.health2.shown, "single slot remains centred")
-O.Change("secondSlot", true)
+O.Change("healthSlots", 2); O.Change("powerSlots", 2)
 combat = true
 local oldPoint = O.buttons.health2.point
 O.Change("slotDistance", 100)
@@ -87,4 +87,30 @@ check(O.buttons.health2.itemID == 95003, "level-up refreshes eligible items")
 items[95003].tooltip = { { leftText = secret() } }
 O.RefreshSlots()
 check(O.buttons.health2.itemID == nil, "restricted tooltip text is not inspected")
+
+-- Three mana slots: potion, conjured water and mana gem each get their own slot.
+O.Change("slotPosition", "Side")
+O.Change("powerSlots", 3)
+items[8079] = { level = 25, required = 15, subclass = 5, spell = 107 }
+items[5514] = { level = 28, required = 18, subclass = 0, spell = 108 }
+bag = { 2455, 8079, 5514 }; O.RefreshSlots()
+check(O.buttons.power1.itemID == 2455 and O.buttons.power2.itemID == 8079 and O.buttons.power3.itemID == 5514,
+    "mana potion, water and mana gem fill separate slots")
+check(O.buttons.power3.shown and not O.buttons.power4.shown and not O.buttons.health3.shown, "slot counts are per orb")
+check(O.buttons.power3.attributes.type1 == "item" and O.buttons.power4.attributes.type1 == nil, "hidden slots have no secure action")
+check(O.buttons.power1.point[5] == 80 and O.buttons.power2.point[5] == 0 and O.buttons.power3.point[5] == -80,
+    "three slots centred on the orb")
+O.DiagnoseItems()
+check(messages[#messages]:find("power3: Auto 5514", 1, true), "diagnostics list every active slot")
+O.Pin("power4", 2455)
+O.Change("powerSlots", 4)
+check(O.buttons.power4.shown and O.buttons.power4.itemID == 2455, "fourth slot accepts pinned items")
+O.Pin("power4", nil)
+O.Change("powerSlots", 3)
+O.OpenOptions()
+local listed
+for _, f in ipairs(frames) do
+    if f.key == "slots" and f.scripts and f.scripts.OnClick then f.scripts.OnClick(f); listed = true; break end
+end
+check(listed, "slot items page opens with per-orb slot counts")
 return checks

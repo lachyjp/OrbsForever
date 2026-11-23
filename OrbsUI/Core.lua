@@ -1,5 +1,5 @@
 local name, O = ...
-O.version = "1.0.3"
+O.version = "1.1.0"
 O.defaults = {
     locked = true, size = 160, scale = 1, style = "Sphere", bezel = "Ornate",
     gloss = true, text = "percent", fontSize = 18, manaOnly = false, blue = false,
@@ -7,7 +7,7 @@ O.defaults = {
     pulse = true, threshold = 30, incomingHeals = true,
     valueBelowPercent = false, damageFlash = true, animateDamage = true,
     font = "dialogue", fontOutline = "shadow",
-    slots = true, secondSlot = false, slotPosition = "Side", hidePlayer = false,
+    slots = true, healthSlots = 1, powerSlots = 1, slotPosition = "Side", hidePlayer = false,
     healthLabel = true, powerLabel = true, slotDistance = 12, slotGap = 10,
     animateGlobe = true, healthSlotAngle = 0, powerSlotAngle = 180,
     valueFontSize = 13, textOrder = "percentFirst", valueFormat = "both", lineGap = 3, separatorPadding = 1,
@@ -70,6 +70,13 @@ frame:SetScript("OnEvent", function(_, event, unit, action, _, amount)
             OrbsUIDB.valueFontSize = (OrbsUIDB.text == "current" or OrbsUIDB.text == "both") and OrbsUIDB.fontSize
                 or math.max(10, math.floor(OrbsUIDB.fontSize * 0.72))
         end
+        if OrbsUIDB.secondSlot ~= nil then
+            -- 1.0.x had an on/off second slot; carry it over to the slot counts.
+            local count = OrbsUIDB.secondSlot and 2 or 1
+            OrbsUIDB.healthSlots = OrbsUIDB.healthSlots or count
+            OrbsUIDB.powerSlots = OrbsUIDB.powerSlots or count
+            OrbsUIDB.secondSlot = nil
+        end
         defaults(OrbsUIDB, O.defaults)
         O.db = OrbsUIDB
         O.db.size = math.max(100, math.min(260, O.db.size))
@@ -81,6 +88,8 @@ frame:SetScript("OnEvent", function(_, event, unit, action, _, amount)
         O.db.threshold = math.max(5, math.min(60, O.db.threshold))
         O.db.slotDistance = math.max(-80, math.min(160, O.db.slotDistance))
         O.db.slotGap = math.max(0, math.min(100, O.db.slotGap))
+        O.db.healthSlots = math.floor(math.max(1, math.min(O.MAX_SLOTS, O.db.healthSlots)))
+        O.db.powerSlots = math.floor(math.max(1, math.min(O.MAX_SLOTS, O.db.powerSlots)))
         O.db.healthSlotAngle = math.max(0, math.min(360, O.db.healthSlotAngle))
         O.db.powerSlotAngle = math.max(0, math.min(360, O.db.powerSlotAngle))
         frame:UnregisterEvent("ADDON_LOADED")

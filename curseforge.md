@@ -15,7 +15,7 @@ Replace your player frame with two glowing, Diablo-style orbs: health on one sid
 - **Your colours.** Pick any health colour. The power orb follows your resource (mana, rage, energy and more), or you can force blue or pick your own.
 - **Numbers your way.** Percentage, current value, current / maximum, or percentage and value on two lines. Choose the font, outline, sizes and spacing.
 - **Combat feedback.** A flash when you're hit, an amber trail as health drains away, and a low-health pulse.
-- **Potion slots.** Health and mana potion slots beside the orbs, plus optional food and water slots. Auto picks the best item in your bags. Drag an item on to pin it, and bind keys under Key Bindings > Orbs.
+- **Potion slots.** Up to four slots per orb: health potion, food, healthstone and bandage on the health orb, and mana potion, water, mana gem and rune on the mana orb. Auto picks the best item in your bags. Drag an item on to pin it, and bind keys under Key Bindings > Orbs.
 - **Druid friendly.** Optionally keep the power orb on mana in Cat and Bear Form.
 - **Combat safe.** Secure buttons and native status bars. Changes made in combat apply as soon as it ends.
 - **Lightweight.** No libraries and no other addons needed.

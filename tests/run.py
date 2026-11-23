@@ -33,6 +33,8 @@ for modern in (False, True):
     print(f"  {edit_checks} Edit Mode unlock and per-layout position checks passed")
     heal_checks = lua.execute((ROOT / "tests/heals.lua").read_text())
     print(f"  {heal_checks} incoming-heal band checks passed (readable and secret values)")
+    notify_checks = lua.execute((ROOT / "tests/notify.lua").read_text())
+    print(f"  {notify_checks} update-note and patch-available checks passed")
     # Simulate a reload in a fresh runtime, retaining only the character DB.
     def serialize(value):
         if hasattr(value, "items"):
@@ -57,6 +59,9 @@ for modern in (False, True):
             old.execute("assert(loadstring(...))(\"OrbsUI\", O)", (ROOT / "OrbsUI" / filename).read_text())
         old.execute('fire("ADDON_LOADED", "OrbsUI"); flush()')
         old.execute(f'assert(O.db.healthSlots == {expected} and O.db.powerSlots == {expected} and O.db.secondSlot == nil)')
+        old.execute('flush()')
+        shown = any("Updated to" in str(m) for m in old.globals().messages.values())
+        assert shown, "1.0.x settings get the update note"
     print("  1.0.x second-slot setting migrated to slot counts")
 
 for path in (ROOT / "OrbsUI/Media").glob("*.tga"):

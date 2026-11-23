@@ -5,10 +5,12 @@
 ## Version: 1.1.0
 ## X-Curse-Project-ID: 1811198
 ## OptionalDeps: DialogueUI
+## SavedVariables: OrbsUIGlobal
 ## SavedVariablesPerCharacter: OrbsUIDB
 Compat.lua
 Core.lua
 Orb.lua
 EditMode.lua
 Slots.lua
+Notify.lua
 Options.lua

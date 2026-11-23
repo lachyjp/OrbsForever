@@ -62,10 +62,12 @@ function O.Update(healthChanged)
 end
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
-frame:SetScript("OnEvent", function(_, event, unit, action, _, amount)
+frame:SetScript("OnEvent", function(_, event, unit, action, extra, amount)
     if event == "ADDON_LOADED" then
         if unit ~= name then return end
         OrbsUIDB = type(OrbsUIDB) == "table" and OrbsUIDB or {}
+        -- Saved settings without a recorded version come from before 1.1.0.
+        O.previousVersion = OrbsUIDB.lastVersion or (next(OrbsUIDB) and "1.0" or nil)
         if OrbsUIDB.valueFontSize == nil and type(OrbsUIDB.fontSize) == "number" then
             OrbsUIDB.valueFontSize = (OrbsUIDB.text == "current" or OrbsUIDB.text == "both") and OrbsUIDB.fontSize
                 or math.max(10, math.floor(OrbsUIDB.fontSize * 0.72))
@@ -102,6 +104,8 @@ frame:SetScript("OnEvent", function(_, event, unit, action, _, amount)
     end
     if event == "PLAYER_REGEN_ENABLED" and O.initPending then O.Init(); return end
     if not O.orbs then return end
+    if event == "CHAT_MSG_ADDON" then O.ReceiveVersion(unit, action, extra, amount); return end
+    if event == "GROUP_ROSTER_UPDATE" then O.BroadcastVersion(); return end
     if event == "UNIT_COMBAT" then
         if not O.C.Secret(unit) and unit == "player" and not O.C.Secret(action) and action == "WOUND" then
             if O.C.Secret(amount) or (type(amount) == "number" and amount > 0) then
@@ -140,6 +144,7 @@ function O.Init()
     end
     O.healEvent = O.C.Register(frame, "UNIT_HEAL_PREDICTION")
     O.InitHeals()
+    O.InitNotify(frame, O.previousVersion)
 end
 SLASH_ORBSUI1 = "/orbs"
 SlashCmdList.ORBSUI = function(message)

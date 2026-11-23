@@ -2,11 +2,8 @@
 
 ## 1.1.0
 
-- Each orb can now have up to four consumable slots. Two new sliders, **Health orb slots** and **Mana orb slots**, replace the "Add food and water slots" toggle, so you can keep a mana potion, conjured water and a mana gem in three separate slots.
-- New slots fill automatically in this order. Health: potion, food, healthstone, bandage. Mana: potion, water, mana gem, rune. Drag any item onto a slot to use it there instead.
-- Healthstones, bandages, mana gems and Demonic and Dark Runes are now recognised.
-- Key bindings for the new slots are under Key Bindings > Orbs.
-- If you had food and water slots turned on, both orbs start with two slots.
+- Each orb can now have up to four consumable slots, set with the new **Health orb slots** and **Mana orb slots** sliders. Keep a mana potion, conjured water and a mana gem in separate slots, for example.
+- Extra slots fill automatically with food, healthstones and bandages (health) or water, mana gems and runes (mana). Drag any item onto a slot to pin it.
 
 ## 1.0.3
 

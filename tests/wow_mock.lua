@@ -163,7 +163,19 @@ function UnitPowerType() return powerKind, powerToken end
 function UnitLevel() return 30 end
 PowerBarColor = { MANA = { r = .1, g = .43, b = 1 }, RAGE = { r = 1, g = .1, b = .1 } }
 function GetBuildInfo() return "test", "1", "today", 16001 end
-function GetBindingKey() return nil end
+bindings, savedBindings = {}, nil
+function GetBindingKey(command)
+    local keys = {}
+    for k, c in pairs(bindings) do if c == command then keys[#keys + 1] = k end end
+    table.sort(keys)
+    return unpack(keys)
+end
+function GetBindingAction(key) return bindings[key] or "" end
+function SetBinding(key, command) assert(not combat, "SetBinding in combat"); bindings[key] = command end
+function SaveBindings(set) savedBindings = set end
+function GetCurrentBindingSet() return 2 end
+function IsAltKeyDown() return alt end
+function IsControlKeyDown() return ctrl end
 function GetBindingText(s) return s end
 function GetCursorInfo() return "item", cursorItem end
 function ClearCursor() cursorItem = nil end

@@ -175,4 +175,33 @@ check(b.inner.points[1][2] == 3 and b.icon.points[1][2] == 5, "orb colour thickn
 O.Change("slotStyle", "Round"); O.Change("slotStrokeRound", 1)
 check(b.border.texture:find("SlotRing1$") and b.icon.points[1][2] == 1, "round rim thickness")
 O.Change("slotStyle", "Ornate")
+-- Slot key bindings from the designer.
+local cmd = "CLICK OrbsUI_Slot_health1:LeftButton"
+bindings["Q"] = "ACTIONBUTTON1"
+local before = #frames
+O.SlotKeyClick("health1", nil, "LeftButton")
+local catcher = frames[before + 1]
+check(catcher and catcher.shown and catcher.scripts.OnKeyDown, "set key shows the key catcher")
+catcher.scripts.OnKeyDown(catcher, "LSHIFT")
+check(catcher.shown, "modifier alone keeps waiting")
+shift = true
+catcher.scripts.OnKeyDown(catcher, "Q")
+shift = false
+check(not catcher.shown, "catcher hides after a key")
+check(bindings["SHIFT-Q"] == cmd and savedBindings == 2, "set key binds the slot with modifiers and saves")
+check(O.SlotKey("health1") == "SHIFT-Q", "slot reports its key")
+O.SlotKeyClick("health1", nil, "LeftButton"); O.SlotKeyFinish("F")
+check(bindings["F"] == cmd and bindings["SHIFT-Q"] == nil, "rebinding replaces the old key")
+O.SlotKeyClick("health1", nil, "LeftButton"); O.SlotKeyFinish("Q")
+check(bindings["Q"] == cmd and #messages > 0 and messages[#messages]:find("no longer does"), "taking over a key says what it replaced")
+O.SlotKeyClick("health1", nil, "LeftButton"); catcher.scripts.OnKeyDown(catcher, "ESCAPE")
+check(not catcher.shown and bindings["Q"] == cmd, "escape cancels without changing the key")
+O.SlotKeyClick("health1", nil, "LeftButton"); O.SlotKeyClick("health1", nil, "MiddleButton")
+check(bindings["BUTTON3"] == cmd, "mouse buttons can be bound")
+O.SlotKeyClick("health1", nil, "RightButton")
+check(O.SlotKey("health1") == nil, "right-click clears the key")
+combat = true
+O.SlotKeyClick("health1", nil, "LeftButton")
+check(O.BindSlot("health1", "Z") == false and bindings["Z"] == nil, "no binding changes in combat")
+combat = false
 return checks

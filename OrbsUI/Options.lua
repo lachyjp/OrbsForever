@@ -639,6 +639,53 @@ EXTRAS.text = function(child, y)
     return 24
 end
 
+-- Key capture for the slot binding buttons. A top-strata frame takes the next
+-- key press so neither the game nor the designer's Escape handler sees it.
+-- Keyboard propagation is set once here, outside combat.
+local catcher, capturing
+local modifierKeys = { LSHIFT = true, RSHIFT = true, LCTRL = true, RCTRL = true, LALT = true, RALT = true,
+    LMETA = true, RMETA = true, UNKNOWN = true }
+local mouseKeys = { MiddleButton = "BUTTON3", Button4 = "BUTTON4", Button5 = "BUTTON5" }
+local function StopCapture()
+    capturing = nil
+    if catcher then catcher:Hide() end
+    if dynamic.slots then dynamic.slots() end
+end
+local function Finish(binding)
+    local key = capturing
+    StopCapture()
+    if key and binding then
+        local mods = (IsAltKeyDown() and "ALT-" or "") .. (IsControlKeyDown() and "CTRL-" or "") ..
+            (IsShiftKeyDown() and "SHIFT-" or "")
+        O.BindSlot(key, mods .. binding)
+    end
+end
+O.SlotKeyFinish = Finish
+O.StopSlotKeyCapture = StopCapture
+function O.SlotKeyClick(key, _, button)
+    if InCombatLockdown() then O.Message("Key bindings can't be changed in combat."); return end
+    if capturing == key and mouseKeys[button] then Finish(mouseKeys[button]); return end
+    if button == "RightButton" then StopCapture(); O.BindSlot(key, nil); return end
+    if button ~= "LeftButton" then return end
+    if capturing == key then StopCapture(); return end
+    if not catcher then
+        catcher = CreateFrame("Frame", nil, UIParent)
+        catcher:SetFrameStrata("TOOLTIP")
+        catcher:EnableKeyboard(true)
+        catcher:SetPropagateKeyboardInput(false)
+        catcher:SetScript("OnKeyDown", function(_, pressed)
+            if modifierKeys[pressed] then return end
+            if pressed == "ESCAPE" then StopCapture() else Finish(pressed) end
+        end)
+        catcher:SetScript("OnEvent", StopCapture)
+        catcher:RegisterEvent("PLAYER_REGEN_DISABLED")
+        catcher:Hide()
+    end
+    capturing = key
+    catcher:Show()
+    if dynamic.slots then dynamic.slots() end
+end
+
 EXTRAS.slots = function(child, y)
     local sub = Label(child, "SLOT ITEMS", "GameFontNormalSmall")
     sub:SetPoint("TOPLEFT", 12, y - 6)
@@ -648,13 +695,18 @@ EXTRAS.slots = function(child, y)
     for _, key in ipairs(O.slotKeys) do
         local auto = Button(child, "Auto", 60, function() O.Pin(key, nil) end)
         Tooltip(auto, "Choose automatically", "Clears the pinned item so this slot picks the best match from your bags.")
+        local bind = Button(child, "", 96, function(self, button) O.SlotKeyClick(key, self, button) end)
+        bind:RegisterForClicks("AnyUp")
+        Tooltip(bind, "Key binding", "Click, then press a key (with Shift, Ctrl or Alt if you like) or a mouse button. " ..
+            "Right-click to clear. Escape cancels.")
         local l = Label(child, "", "GameFontHighlight")
         l:SetPoint("LEFT", auto, "RIGHT", 10, 0)
-        l:SetWidth(CONTENT_W - 110)
+        l:SetWidth(CONTENT_W - 214)
         l:SetWordWrap(false)
-        rows[#rows + 1] = { key = key, auto = auto, label = l }
+        bind:SetPoint("LEFT", l, "RIGHT", 6, 0)
+        rows[#rows + 1] = { key = key, auto = auto, label = l, bind = bind }
     end
-    local note = Note(child, "Auto scans matching bag items. Drag an item onto a slot to pin it; shift-right-click a slot to clear it.", y - 4)
+    local note = Note(child, "Auto scans matching bag items. Drag an item onto a slot to pin it; shift-right-click a slot to clear it. Keys also appear under Key Bindings > Orbs.", y - 4)
     dynamic.slots = function()
         -- Only the slots each orb currently has are listed, health first.
         local shown = 0
@@ -663,7 +715,11 @@ EXTRAS.slots = function(child, y)
             local active = tonumber(index) <= O.SlotCount(kind)
             row.auto:SetShown(active)
             row.label:SetShown(active)
+            row.bind:SetShown(active)
             if active then
+                local binding = O.SlotKey(row.key)
+                row.bind:SetText(capturing == row.key and "|cffffd100Press a key|r"
+                    or binding and GetBindingText(binding, "KEY_") or "|cff888888Set key|r")
                 row.auto:ClearAllPoints()
                 row.auto:SetPoint("TOPLEFT", 12, y - shown * 26)
                 shown = shown + 1
@@ -958,6 +1014,8 @@ function O.CreateOptions()
     end)
     p:SetScript("OnHide", function(self)
         self:SetAlpha(1)
+        -- Never leave the key catcher swallowing keys after the window closes.
+        StopCapture()
         if not InCombatLockdown() then self:SetPropagateKeyboardInput(true) end
     end)
 

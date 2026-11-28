@@ -1,5 +1,5 @@
 local name, O = ...
-O.version = "1.2.0"
+O.version = "1.2.1"
 O.defaults = {
     locked = true, size = 160, scale = 1, style = "Sphere", bezel = "Ornate",
     gloss = true, text = "percent", fontSize = 18, manaOnly = false, blue = false,

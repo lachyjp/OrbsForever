@@ -64,16 +64,18 @@ for modern in (False, True):
         assert shown, "1.0.x settings get the update note"
     print("  1.0.x second-slot setting migrated to slot counts")
 
-for path in (ROOT / "OrbsUI/Media").glob("*.tga"):
+tgas = list((ROOT / "OrbsUI/Media").glob("*.tga"))
+for path in tgas:
     data = path.read_bytes()
     width, height, depth, descriptor = struct.unpack_from("<HHBB", data, 12)
-    assert (width, height, depth, descriptor) == (256, 256, 32, 8), path
+    expected = 128 if path.stem[-1].isdigit() and path.stem.startswith("Slot") else 256
+    assert (width, height, depth, descriptor) == (expected, expected, 32, 8), path
     assert len(data) == 18 + width * height * 4, path
 frames = [(ROOT / f"OrbsUI/Media/Sphere{i:02d}.tga").read_bytes()[18::4] for i in range(1, 65)]
 assert len(set(frames)) == 64, "Animation frames must differ"
 deltas = [sum(abs(a-b) for a, b in zip(frames[i], frames[(i+1) % 64])) / len(frames[i]) for i in range(64)]
 assert max(deltas) < min(deltas) * 3, "Loop boundary should be as smooth as interior frames"
-print("79 TGA assets: headers, dimensions, alpha, payloads and animation loop validated")
+print(f"{len(tgas)} TGA assets: headers, dimensions, alpha, payloads and animation loop validated")
 bindings = ET.parse(ROOT / "OrbsUI/Bindings.xml").getroot()
 assert len(bindings) == 8
 print("8 binding declarations: XML parsed")

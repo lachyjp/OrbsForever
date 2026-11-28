@@ -301,6 +301,7 @@ function O.CreateOrb(key)
             r, g, b = c.r, c.g, c.b
         else r, g, b = 0.10, 0.43, 1 end
         self.bar:SetStatusBarColor(r, g, b)
+        O.TintSlots(health and "health" or "power", r, g, b)
         if self.incoming then self:SetIncoming(current, maximum, r, g, b) end
         self.label:SetText(health and "HEALTH" or (_G[token] or token or "POWER"))
         local percent = C.Percent(health, kind, current, maximum)

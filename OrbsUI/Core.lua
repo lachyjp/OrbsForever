@@ -1,5 +1,5 @@
 local name, O = ...
-O.version = "1.1.0"
+O.version = "1.2.0"
 O.defaults = {
     locked = true, size = 160, scale = 1, style = "Sphere", bezel = "Ornate",
     gloss = true, text = "percent", fontSize = 18, manaOnly = false, blue = false,
@@ -7,7 +7,8 @@ O.defaults = {
     pulse = true, threshold = 30, incomingHeals = true,
     valueBelowPercent = false, damageFlash = true, animateDamage = true,
     font = "dialogue", fontOutline = "shadow",
-    slots = true, healthSlots = 1, powerSlots = 1, slotPosition = "Side", hidePlayer = false,
+    slots = true, healthSlots = 1, powerSlots = 1, slotPosition = "Side", slotStyle = "Ornate",
+    slotStrokeOrnate = 4, slotStrokeRound = 3, slotStrokeClean = 2, slotStrokeOrb = 2, hidePlayer = false,
     healthLabel = true, powerLabel = true, slotDistance = 12, slotGap = 10,
     animateGlobe = true, healthSlotAngle = 0, powerSlotAngle = 180,
     valueFontSize = 13, textOrder = "percentFirst", valueFormat = "both", lineGap = 3, separatorPadding = 1,
@@ -31,6 +32,7 @@ function O.Apply()
     O.pending = false
     for _, orb in pairs(O.orbs) do orb:Apply() end
     O.LayoutSlots()
+    O.StyleSlots()
     O.RefreshSlots()
     if PlayerFrame then
         if O.db.hidePlayer then
@@ -92,6 +94,9 @@ frame:SetScript("OnEvent", function(_, event, unit, action, extra, amount)
         O.db.slotGap = math.max(0, math.min(100, O.db.slotGap))
         O.db.healthSlots = math.floor(math.max(1, math.min(O.MAX_SLOTS, O.db.healthSlots)))
         O.db.powerSlots = math.floor(math.max(1, math.min(O.MAX_SLOTS, O.db.powerSlots)))
+        for _, key in ipairs({ "slotStrokeOrnate", "slotStrokeRound", "slotStrokeClean", "slotStrokeOrb" }) do
+            O.db[key] = math.floor(math.max(1, math.min(O.MAX_STROKE, O.db[key])))
+        end
         O.db.healthSlotAngle = math.max(0, math.min(360, O.db.healthSlotAngle))
         O.db.powerSlotAngle = math.max(0, math.min(360, O.db.powerSlotAngle))
         frame:UnregisterEvent("ADDON_LOADED")

@@ -20,6 +20,7 @@ add("gem", { 5514, 5513, 8007, 8008, 22044 })
 add("rune", { 12662, 20520 })
 -- Each orb's slots fill in this order as the slot count goes up.
 O.MAX_SLOTS = 4
+O.MAX_STROKE = 8
 local order = {
     health = { "heal", "food", "healthstone", "bandage" },
     power = { "mana", "water", "gem", "rune" },
@@ -165,6 +166,11 @@ function O.RefreshSlotVisuals()
     if not O.buttons then return end
     for _, b in pairs(O.buttons) do
         local id = b.itemID
+        local s = b.style or O.slotStyles.Ornate
+        if s.edge == "orb" then b.edge:SetColorTexture(unpack(O.slotTint[b.kind]))
+        elseif s.edge then b.edge:SetColorTexture(unpack(s.edge)) end
+        if s.emptyBorder then b.border:SetTexture(id and s.border or s.emptyBorder) end
+        b.icon:SetShown(id ~= nil or not (s.emptyBorder or b.hideEmptyIcon))
         if id then
             local _, _, _, _, _, _, _, _, _, icon = C.ItemInfo(id)
             b.icon:SetTexture(icon or 134400)
@@ -186,6 +192,175 @@ function O.RefreshSlotVisuals()
         local binding = GetBindingKey("CLICK " .. b:GetName() .. ":LeftButton")
         b.hotkey:SetText(binding and GetBindingText(binding, "KEY_") or "")
     end
+end
+-- Slot looks. inset: icon inset from the 38px button; edge/inner: solid
+-- frames behind the icon; border: artwork drawn over it.
+local WHITE = "Interface\\Buttons\\WHITE8X8"
+local slotStyles = {
+    -- stroke: the setting holding this look's frame thickness in pixels;
+    -- layout(n) returns the inset, inner and border for that thickness.
+    Ornate = { stroke = "slotStrokeOrnate",
+        layout = function(n) return math.max(1, n - 1), nil, "SlotBorder" .. n end },
+    Blizzard = { inset = 1, crop = 0, border = "Interface\\Buttons\\UI-Quickslot2", borderSize = 70,
+        emptyBorder = "Interface\\Buttons\\UI-Quickslot", pushed = true, hotkeyInside = true },
+    Clean = { crop = 0.08, edge = { 0, 0, 0, 1 }, stroke = "slotStrokeClean",
+        layout = function(n) return n end },
+    OrbColour = { crop = 0.08, edge = "orb", stroke = "slotStrokeOrb",
+        layout = function(n) return n + 2, n end },
+    Round = { round = true, stroke = "slotStrokeRound",
+        layout = function(n) return n, nil, "SlotRing" .. n end },
+    None = { inset = 0 },
+    -- Copies the frame, mask and highlights from the game's own action buttons,
+    -- so it matches whatever this client draws (gold frame on modern clients).
+    Native = { inset = 1, crop = 0, pushed = true, hotkeyInside = true, native = true },
+}
+O.slotStyles = slotStyles
+local DEPRESS = "Interface\\Buttons\\UI-Quickslot-Depress"
+local HILIGHT = "Interface\\Buttons\\ButtonHilight-Square"
+local function media(file) return file:find("\\", 1, true) and file or O.media .. file end
+local function copyTexture(dst, src)
+    local atlas = src.GetAtlas and src:GetAtlas()
+    if atlas then dst:SetAtlas(atlas) return true end
+    local file = src:GetTexture()
+    if not file then return false end
+    dst:SetTexture(file)
+    if src.GetTexCoord then dst:SetTexCoord(src:GetTexCoord()) end
+    return true
+end
+local function size(f)
+    local w, h = f:GetWidth(), f:GetHeight()
+    if type(w) == "number" and type(h) == "number" and w > 0 and h > 0 then return w, h end
+end
+-- Returns false when no action button is available to copy.
+local function styleNative(b)
+    local src = _G.ActionButton1
+    local sw = src and size(src)
+    local normal = src and src.GetNormalTexture and src:GetNormalTexture()
+    if not sw or not normal or not copyTexture(b.border, normal) then return false end
+    local scale = 38 / sw
+    local icon = src.icon or src.Icon or _G[(src:GetName() or "") .. "Icon"]
+    -- Copy the game's own anchors, scaled, so art that sits off-centre on
+    -- purpose (the frame's shadow edge, the icon mask) lines up the same way.
+    local function layout(dst, region, fallback)
+        local n = region and region.GetNumPoints and region:GetNumPoints() or 0
+        dst:ClearAllPoints()
+        if n == 0 then fallback(); return end
+        for i = 1, n do
+            local point, rel, relPoint, x, y = region:GetPoint(i)
+            local target = (icon and rel == icon) and b.icon or b
+            if target == dst then target = b end
+            dst:SetPoint(point, target, relPoint or point, (x or 0) * scale, (y or 0) * scale)
+        end
+        local w, h = size(region)
+        if n == 1 and w then dst:SetSize(w * scale, h * scale) end
+    end
+    layout(b.icon, icon, function()
+        local iw = icon and size(icon)
+        local inset = iw and (sw - iw) / 2 * scale or 1
+        b.icon:SetPoint("TOPLEFT", inset, -inset)
+        b.icon:SetPoint("BOTTOMRIGHT", -inset, inset)
+    end)
+    layout(b.border, normal, function() b.border:SetAllPoints(b) end)
+    b.border:Show()
+    local pushed = src.GetPushedTexture and src:GetPushedTexture()
+    if pushed and copyTexture(b:GetPushedTexture(), pushed) then
+        layout(b:GetPushedTexture(), pushed, function() b:GetPushedTexture():SetAllPoints(b) end)
+    end
+    if b.mask and src.IconMask and copyTexture(b.mask, src.IconMask) then
+        layout(b.mask, src.IconMask, function() b.mask:SetAllPoints(b.icon) end)
+    end
+    b.hideEmptyIcon = false
+    if src.SlotBackground and copyTexture(b.inner, src.SlotBackground) then
+        layout(b.inner, src.SlotBackground, function() b.inner:SetAllPoints(b.icon) end)
+        b.inner:Show()
+        b.hideEmptyIcon = true
+    end
+    return true
+end
+function O.StyleSlot(b)
+    local s = slotStyles[O.db.slotStyle] or slotStyles.Ornate
+    local crop = s.crop or 0.07
+    b.style = s
+    b.hideEmptyIcon = false
+    b.border:SetTexCoord(0, 1, 0, 1)
+    b:GetPushedTexture():SetTexture(DEPRESS)
+    b:GetPushedTexture():SetTexCoord(0, 1, 0, 1)
+    b:GetHighlightTexture():SetTexture(HILIGHT)
+    b:GetHighlightTexture():SetTexCoord(0, 1, 0, 1)
+    local inset, inner, border = s.inset, s.inner, s.border
+    if s.stroke then
+        local n = math.floor(math.max(1, math.min(O.MAX_STROKE, O.db[s.stroke] or 2)))
+        inset, inner, border = s.layout(n)
+    end
+    b.icon:ClearAllPoints()
+    b.icon:SetPoint("TOPLEFT", inset or 0, -(inset or 0))
+    b.icon:SetPoint("BOTTOMRIGHT", -(inset or 0), inset or 0)
+    b.icon:SetTexCoord(crop, 1 - crop, crop, 1 - crop)
+    b.edge:SetAllPoints(b)
+    b.edge:SetShown(s.edge ~= nil)
+    b.inner:ClearAllPoints()
+    b.inner:SetPoint("TOPLEFT", inner or 0, -(inner or 0))
+    b.inner:SetPoint("BOTTOMRIGHT", -(inner or 0), inner or 0)
+    b.inner:SetColorTexture(0, 0, 0, 1)
+    b.inner:SetShown(inner ~= nil)
+    b.border:ClearAllPoints()
+    if s.borderSize then
+        b.border:SetPoint("CENTER")
+        b.border:SetSize(s.borderSize, s.borderSize)
+    else b.border:SetAllPoints(b) end
+    if border then b.border:SetTexture(media(border)) end
+    b.border:SetShown(border ~= nil)
+    b:GetPushedTexture():ClearAllPoints()
+    b:GetPushedTexture():SetAllPoints(b)
+    b:GetPushedTexture():SetAlpha(s.pushed and 1 or 0)
+    b.count:ClearAllPoints()
+    b.hotkey:ClearAllPoints()
+    if s.hotkeyInside then
+        b.count:SetPoint("BOTTOMRIGHT", -2, 2)
+        b.hotkey:SetPoint("TOPRIGHT", -2, -2)
+        b.hotkey:SetFontObject("NumberFontNormalSmallGray")
+    else
+        b.count:SetPoint("BOTTOMRIGHT", -3, 3)
+        b.hotkey:SetPoint("TOP", 0, 12)
+        b.hotkey:SetFontObject("GameFontNormalSmall")
+    end
+    if b.mask then
+        -- The circle in OrbMask spans 89% of the texture, so pad it out to the icon edge.
+        local pad = s.round and 2 or 0
+        b.mask:ClearAllPoints()
+        b.mask:SetPoint("TOPLEFT", b.icon, "TOPLEFT", -pad, pad)
+        b.mask:SetPoint("BOTTOMRIGHT", b.icon, "BOTTOMRIGHT", pad, -pad)
+        b.mask:SetTexture(s.round and O.media .. "OrbMask" or WHITE, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+    end
+    if b.cooldown.SetSwipeTexture then b.cooldown:SetSwipeTexture(s.round and O.media .. "OrbMask" or WHITE) end
+    if b.cooldown.SetUseCircularEdge then b.cooldown:SetUseCircularEdge(s.round == true) end
+    if s.native and not styleNative(b) then
+        -- No action button to copy from: fall back to the classic grey frame.
+        b.style = nil
+        local saved = O.db.slotStyle
+        O.db.slotStyle = "Blizzard"
+        O.StyleSlot(b)
+        O.db.slotStyle = saved
+    end
+end
+-- Orb colour edges follow the orb's fill, including druid form changes.
+local slotTint = { health = { 1, 0.16, 0.20, 1 }, power = { 0.10, 0.43, 1, 1 } }
+O.slotTint = slotTint
+function O.TintSlots(kind, r, g, b)
+    local t = slotTint[kind]
+    if t[1] == r and t[2] == g and t[3] == b then return end
+    t[1], t[2], t[3] = r, g, b
+    if not O.buttons then return end
+    for _, button in pairs(O.buttons) do
+        if button.kind == kind and button.style and button.style.edge == "orb" then
+            button.edge:SetColorTexture(r, g, b, 1)
+        end
+    end
+end
+function O.StyleSlots()
+    if not O.buttons then return end
+    for _, b in pairs(O.buttons) do O.StyleSlot(b) end
+    O.RefreshSlotVisuals()
 end
 -- Slots spread along the orb's edge, centred on the chosen angle, one slot
 -- width plus the gap apart.
@@ -238,23 +413,29 @@ function O.CreateSlots()
         b:SetAttribute("type1", "item")
         b:SetAttribute("type2", "")
         b:SetAttribute("shift-type2", "")
+        b.kind = slotInfo(key)
+        b.edge = b:CreateTexture(nil, "BACKGROUND", nil, -2)
+        b.inner = b:CreateTexture(nil, "BACKGROUND", nil, -1)
         b.icon = b:CreateTexture(nil, "BACKGROUND")
-        b.icon:SetPoint("TOPLEFT", 3, -3)
-        b.icon:SetPoint("BOTTOMRIGHT", -3, 3)
-        b.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
         b.cooldown = CreateFrame("Cooldown", nil, b, "CooldownFrameTemplate")
         b.cooldown:SetAllPoints(b.icon)
         local overlay = CreateFrame("Frame", nil, b)
         overlay:SetAllPoints(b)
         overlay:SetFrameLevel(b.cooldown:GetFrameLevel() + 2)
         b.border = overlay:CreateTexture(nil, "ARTWORK")
-        b.border:SetAllPoints(b)
-        b.border:SetTexture(O.media .. "SlotBorder")
         b.count = overlay:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
-        b.count:SetPoint("BOTTOMRIGHT", -3, 3)
         b.hotkey = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        b.hotkey:SetPoint("TOP", 0, 12)
         b:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+        b:SetPushedTexture("Interface\\Buttons\\UI-Quickslot-Depress")
+        -- One mask clips the icon and highlight; Round swaps in a circle.
+        if b.CreateMaskTexture then
+            b.mask = b:CreateMaskTexture()
+            b.mask:SetAllPoints(b.icon)
+            b.icon:AddMaskTexture(b.mask)
+            b.inner:AddMaskTexture(b.mask)
+            b:GetHighlightTexture():AddMaskTexture(b.mask)
+        end
+        O.StyleSlot(b)
         b:SetScript("OnReceiveDrag", function()
             local cursorType, id = GetCursorInfo()
             if cursorType == "item" then O.Pin(key, id); ClearCursor() end

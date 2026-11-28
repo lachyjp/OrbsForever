@@ -113,4 +113,66 @@ for _, f in ipairs(frames) do
     if f.key == "slots" and f.scripts and f.scripts.OnClick then f.scripts.OnClick(f); listed = true; break end
 end
 check(listed, "slot items page opens with per-orb slot counts")
+
+-- Slot looks: every style applies, and the default stays the gold frame.
+local b = O.buttons.health1
+check(O.db.slotStyle == "Ornate" and b.border.texture:find("SlotBorder") and b.border.shown, "default slot look is antique gold")
+O.Change("slotStyle", "Blizzard")
+check(O.buttons.power1.border.texture == [[Interface\Buttons\UI-Quickslot2]] and b.border.width == 70, "action bar look uses the game's slot frame")
+check(b.hotkey.point[1] == "TOPRIGHT" and b:GetPushedTexture().alpha == 1, "action bar look puts the key inside and shows the press")
+O.buttons.health4.itemID = nil; O.RefreshSlotVisuals()
+check(O.buttons.health4.border.texture == [[Interface\Buttons\UI-Quickslot]] and not O.buttons.health4.icon.shown, "empty action bar slot shows the empty frame")
+O.Change("slotStyle", "Clean")
+check(not b.border.shown and b.edge.shown and b.edge.colorTexture[1] == 0, "thin black edge look")
+O.Change("slotStyle", "OrbColour")
+check(b.edge.colorTexture[1] == O.db.healthColor[1] and b.inner.shown, "orb colour edge follows the health colour")
+O.TintSlots("power", 0.2, 0.3, 0.9)
+check(O.buttons.power1.edge.colorTexture[3] == 0.9, "orb colour edge follows power colour changes")
+O.Change("slotStyle", "Round")
+check(b.border.texture:find("SlotRing") and b.mask.texture:find("OrbMask") and b.cooldown.swipe:find("OrbMask"), "round look masks the icon and cooldown")
+O.Change("slotStyle", "None")
+check(not b.border.shown and not b.edge.shown and b.icon.points[1][2] == 0 and not b.mask.texture:find("OrbMask"), "icon only look")
+O.Change("slotStyle", "Ornate")
+check(b.border.texture:find("SlotBorder") and b:GetPushedTexture().alpha == 0 and b.hotkey.point[1] == "TOP", "switching back restores antique gold")
+-- Action bar look copies the game's own action button.
+ActionButton1 = CreateFrame("CheckButton", "ActionButton1")
+ActionButton1:SetSize(45, 45)
+local normal = ActionButton1:CreateTexture(); normal:SetAtlas("UI-HUD-ActionBar-IconFrame"); normal:SetSize(46, 45)
+normal:SetPoint("TOPLEFT")
+local pushedTex = ActionButton1:CreateTexture(); pushedTex:SetAtlas("UI-HUD-ActionBar-IconFrame-Down")
+function ActionButton1:GetNormalTexture() return normal end
+function ActionButton1:GetPushedTexture() return pushedTex end
+ActionButton1.icon = ActionButton1:CreateTexture(); ActionButton1.icon:SetSize(45, 45)
+ActionButton1.IconMask = ActionButton1:CreateTexture(); ActionButton1.IconMask:SetAtlas("UI-HUD-ActionBar-IconFrame-Mask")
+ActionButton1.IconMask:SetPoint("CENTER", ActionButton1.icon, "CENTER", 0, 0)
+ActionButton1.IconMask:SetSize(64, 64)
+ActionButton1.SlotBackground = ActionButton1:CreateTexture(); ActionButton1.SlotBackground:SetAtlas("UI-HUD-ActionBar-IconFrame-Background")
+O.Change("slotStyle", "Native")
+check(b.border.atlas == "UI-HUD-ActionBar-IconFrame" and b.border.shown and math.abs(b.border.width - 46 * 38 / 45) < 0.01,
+    "action bar look copies and scales the game's button frame")
+check(b.border.point[1] == "TOPLEFT" and b.border.point[2] == b, "action bar frame keeps the game's top-left anchor")
+check(b.mask.point[2] == b.icon and math.abs(b.mask.width - 64 * 38 / 45) < 0.01, "icon mask anchors to the icon like the game's")
+check(b.mask.atlas == "UI-HUD-ActionBar-IconFrame-Mask" and b.inner.atlas == "UI-HUD-ActionBar-IconFrame-Background" and b.inner.shown,
+    "action bar look copies the icon mask and slot background")
+check(b:GetPushedTexture().atlas == "UI-HUD-ActionBar-IconFrame-Down" and b.hotkey.point[1] == "TOPRIGHT", "action bar look copies the press and keeps keys inside")
+O.RefreshSlotVisuals()
+check(not O.buttons.health4.icon.shown and O.buttons.power1.icon.shown, "empty action bar slot shows just the slot background")
+O.Change("slotStyle", "Ornate")
+check(b.border.texture:find("SlotBorder") and b.border.atlas == nil and b.mask.atlas == nil and not b.inner.shown, "leaving action bar look clears copied art")
+ActionButton1 = nil
+O.Change("slotStyle", "Native")
+check(O.db.slotStyle == "Native" and b.style == O.slotStyles.Blizzard, "action bar look falls back to classic grey without action buttons")
+O.Change("slotStyle", "Ornate")
+-- Frame thickness is per look.
+O.Change("slotStyle", "Ornate")
+check(b.border.texture:find("SlotBorder4$") and b.icon.points[1][2] == 3, "antique gold defaults to a 4px frame")
+O.Change("slotStrokeOrnate", 7)
+check(b.border.texture:find("SlotBorder7$") and b.icon.points[1][2] == 6, "antique gold thickness swaps the frame art and icon inset")
+O.Change("slotStyle", "Clean"); O.Change("slotStrokeClean", 5)
+check(b.icon.points[1][2] == 5 and O.db.slotStrokeOrnate == 7, "thin edge thickness is stored separately")
+O.Change("slotStyle", "OrbColour"); O.Change("slotStrokeOrb", 3)
+check(b.inner.points[1][2] == 3 and b.icon.points[1][2] == 5, "orb colour thickness moves the black line and icon")
+O.Change("slotStyle", "Round"); O.Change("slotStrokeRound", 1)
+check(b.border.texture:find("SlotRing1$") and b.icon.points[1][2] == 1, "round rim thickness")
+O.Change("slotStyle", "Ornate")
 return checks

@@ -6,6 +6,7 @@ local PREFIX = "OrbsVersion"
 
 -- One short line per release that adds something worth finding in the menu.
 O.whatsNew = {
+    ["1.2.0"] = "Consumable slots now have seven looks, including one that matches your action bar buttons. Find it in /orbs > Consumable slots > Look.",
     ["1.1.0"] = "Each orb can now have up to four consumable slots. Find it in /orbs > Consumable slots > Health orb slots and Mana orb slots.",
 }
 

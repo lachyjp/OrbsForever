@@ -131,6 +131,34 @@ function O.DiagnoseItems()
         end
     end
 end
+-- Key bindings use the CLICK commands declared in Bindings.xml, so they also
+-- show under Key Bindings > Orbs. One key per slot; binding a key that already
+-- does something else takes it over, as the game's own menu does.
+function O.SlotCommand(key) return "CLICK OrbsUI_Slot_" .. key .. ":LeftButton" end
+function O.SlotKey(key)
+    local binding = GetBindingKey(O.SlotCommand(key))
+    return binding
+end
+function O.BindSlot(key, binding)
+    if InCombatLockdown() then
+        O.Message("Key bindings can't be changed in combat.")
+        return false
+    end
+    local command = O.SlotCommand(key)
+    local old = { GetBindingKey(command) }
+    for _, k in ipairs(old) do SetBinding(k) end
+    if binding then
+        local previous = GetBindingAction(binding)
+        if previous and previous ~= "" and previous ~= command then
+            O.Message(GetBindingText(binding, "KEY_") .. " no longer does: " .. (_G["BINDING_NAME_" .. previous] or previous))
+        end
+        SetBinding(binding, command)
+    end
+    SaveBindings(GetCurrentBindingSet())
+    O.RefreshSlotVisuals()
+    if O.RefreshOptions then O.RefreshOptions() end
+    return true
+end
 function O.Pin(key, id)
     O.db.pins[key] = id
     if InCombatLockdown() then

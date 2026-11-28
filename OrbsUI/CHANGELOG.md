@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- Set a key for each consumable slot right in /orbs > Consumable slots: click **Set key**, then press a key (with Shift, Ctrl or Alt) or a mouse button. Right-click to clear. Taking over a key that already does something tells you what it replaced.
+
 ## 1.2.0
 
 - New **Look** setting for consumable slots, under /orbs > Consumable slots. Choose Antique gold (the original), Action bar (copies the frame from your game's own action buttons), Classic grey (the original 2004 button frame), Thin black edge, Orb colour (edged in each orb's colour), Round, or Icon only.

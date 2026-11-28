@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- New **Look** setting for consumable slots, under /orbs > Consumable slots. Choose Antique gold (the original), Action bar (copies the frame from your game's own action buttons), Classic grey (the original 2004 button frame), Thin black edge, Orb colour (edged in each orb's colour), Round, or Icon only.
+- Antique gold, Round, Thin black edge and Orb colour each have their own **thickness** slider (1 to 8 pixels).
+
 ## 1.1.0
 
 - Each orb can now have up to four consumable slots, set with the new **Health orb slots** and **Mana orb slots** sliders. Keep a mana potion, conjured water and a mana gem in separate slots, for example.

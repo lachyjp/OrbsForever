@@ -30,10 +30,16 @@ for _, method in ipairs({ "SetClampedToScreen", "RegisterForDrag", "SetFrameStra
     "SetHighlightTexture", "RegisterForClicks", "SetOwner", "AddLine", "SetHyperlink", "SetWordWrap", "SetEnabled",
     "SetNormalTexture", "SetHitRectInsets", "LockHighlight", "UnlockHighlight", "SetAutoFocus", "ClearFocus",
     "SetColorTexture", "SetNormalFontObject", "SetFontObject", "SetClipsChildren",
-    "EnableKeyboard", "SetPropagateKeyboardInput", "Raise" }) do methods[method] = noop end
+    "EnableKeyboard", "SetPushedTexture", "SetUseCircularEdge", "SetPropagateKeyboardInput", "Raise" }) do methods[method] = noop end
 function methods:SetHeight(h) self.height = h end
+function methods:SetColorTexture(...) self.colorTexture = { ... } end
 function methods:SetScrollChild(c) self.scrollChild = c end
 function methods:GetStringWidth() return #(self.text or "") * 6 end
+function methods:GetPushedTexture()
+    if not self.pushedTexture then self.pushedTexture = widget("Texture", nil, self) end
+    return self.pushedTexture
+end
+function methods:SetSwipeTexture(t) self.swipe = t end
 function methods:GetHighlightTexture() return widget("Texture", nil, self) end
 function methods:GetFontString()
     if not self.fontString then self.fontString = widget("FontString", nil, self) end
@@ -49,9 +55,13 @@ function methods:SetShadowColor(...) self.shadowColor = { ... } end
 function methods:SetShadowOffset(...) self.shadowOffset = { ... } end
 function methods:SetPoint(...)
     safe(self); self.point = { ... }
+    self.points = self.points or {}
+    self.points[#self.points + 1] = self.point
     if self.protected and type(self.point[2]) == "table" and self.point[2] ~= UIParent then self.point[2].protected = true end
 end
-function methods:ClearAllPoints() safe(self); self.point = nil end
+function methods:ClearAllPoints() safe(self); self.point = nil; self.points = nil end
+function methods:GetNumPoints() return self.points and #self.points or 0 end
+function methods:GetPoint(i) return unpack(self.points[i or 1]) end
 function methods:SetSize(w, h) safe(self); self.width, self.height = w, h end
 function methods:SetWidth(w) self.width = w end
 function methods:GetWidth() return self.width end
@@ -83,7 +93,11 @@ function methods:UnregisterEvent(e) self.events[e] = nil end
 function methods:CreateTexture() return widget("Texture", nil, self) end
 function methods:CreateMaskTexture() return widget("Mask", nil, self) end
 function methods:CreateFontString() return widget("FontString", nil, self) end
-function methods:SetTexture(t) self.texture = t end
+function methods:SetTexture(t) self.texture = t; self.atlas = nil end
+function methods:SetAtlas(a) self.atlas = a; self.texture = nil end
+function methods:GetAtlas() return self.atlas end
+function methods:GetTexture() return self.texture end
+function methods:GetTexCoord() return 0, 1, 0, 1 end
 function methods:IsObjectLoaded() return self.texture ~= unloadedTexture end
 function methods:AddMaskTexture(m) self.mask = m end
 function methods:SetStatusBarTexture(t)

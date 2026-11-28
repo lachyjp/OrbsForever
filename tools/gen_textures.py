@@ -2,6 +2,7 @@
 from pathlib import Path
 import math
 import struct
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "OrbsUI" / "Media"
@@ -61,11 +62,17 @@ def pixel(name, x, y):
         return v * 1.1, v * 0.91, v * 0.61, alpha
     if name == "Glow":
         return 1, 1, 1, math.exp(-((r - 0.90) / 0.06) ** 2) * 0.7
-    if name == "SlotBorder":
-        d = max(abs(x), abs(y))
-        alpha = clamp((d - 0.77) * 80) * clamp((0.98 - d) * 80)
+    if name.startswith("SlotBorder") or name.startswith("SlotRing"):
+        # Gold bevelled frame. A numbered variant is that many pixels thick on
+        # the 38px slot button; the plain names keep the original widths.
+        square = name.startswith("SlotBorder")
+        digits = name[10:] if square else name[8:]
+        width = int(digits) / 19 if digits else (0.21 if square else 0.18)
+        inner = 0.98 - width
+        d = max(abs(x), abs(y)) if square else r
+        alpha = clamp((d - inner) * 80) * clamp((0.98 - d) * 80)
         light = 0.5 - 0.18 * y - 0.08 * x
-        ridge = 0.55 + 0.45 * math.sin((d - 0.77) / 0.21 * math.pi)
+        ridge = 0.55 + 0.45 * math.sin(clamp((d - inner) / width) * math.pi)
         return light * ridge, light * ridge * 0.82, light * ridge * 0.54, alpha
     if name == "SlotEmpty":
         plus = (abs(x) < 0.055 and abs(y) < 0.3) or (abs(y) < 0.055 and abs(x) < 0.3)
@@ -77,13 +84,17 @@ def main():
     names = ["OrbMask", "Empty", "Sphere", "Flat", "GradV", "GradH", "GradRadial",
              "Gloss", "RimShadow", "Swirl", "Bezel", "ThinBezel", "Glow", "SlotBorder", "SlotEmpty"]
     names += [f"Sphere{i:02d}" for i in range(1, 65)]
+    names += [f"{frame}{n}" for frame in ("SlotBorder", "SlotRing") for n in range(1, 9)]
+    if len(sys.argv) > 1: names = sys.argv[1:]
     for name in names:
-        data = bytearray(struct.pack("<BBBHHBHHHHBB", 0, 0, 2, 0, 0, 0, 0, 0, SIZE, SIZE, 32, 8))
+        # Thickness variants are small on screen, so they ship at 128px.
+        size = 128 if name[-1].isdigit() and name.startswith("Slot") else SIZE
+        data = bytearray(struct.pack("<BBBHHBHHHHBB", 0, 0, 2, 0, 0, 0, 0, 0, size, size, 32, 8))
         # Bottom-left origin, BGRA. Alpha has 8 bits; the game expects uncompressed TGA.
-        for row in range(SIZE):
-            y = 1 - (row + 0.5) / SIZE * 2
-            for col in range(SIZE):
-                x = (col + 0.5) / SIZE * 2 - 1
+        for row in range(size):
+            y = 1 - (row + 0.5) / size * 2
+            for col in range(size):
+                x = (col + 0.5) / size * 2 - 1
                 r, g, b, a = pixel(name, x, y)
                 data.extend(round(clamp(c) * 255) for c in (b, g, r, a))
         (OUT / (name + ".tga")).write_bytes(data)
